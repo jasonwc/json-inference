@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SERVICES=(ollama.service open-webui.service)
+
+case "${1:-}" in
+  start)
+    echo "Starting clankers..."
+    systemctl --user start "${SERVICES[@]}"
+    echo "Ollama:    http://localhost:11434"
+    echo "Open WebUI: http://localhost:8080"
+    ;;
+  stop)
+    echo "Stopping clankers..."
+    systemctl --user stop "${SERVICES[@]}"
+    ;;
+  status)
+    systemctl --user status "${SERVICES[@]}" --no-pager
+    ;;
+  *)
+    echo "Usage: clankers {start|stop|status}"
+    exit 1
+    ;;
+esac
