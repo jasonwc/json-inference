@@ -1,12 +1,12 @@
-# json-clankers
+# json-agents
 
 Local AI model experimentation and agent patterns on json-mini.
 
 ## Quick Start
 
 ```bash
-git clone https://github.com/jasonwc/json-clankers.git
-cd json-clankers
+git clone https://github.com/jasonwc/json-agents.git
+cd json-agents
 direnv allow
 
 # Install and enable systemd services (Ollama + Open WebUI)
