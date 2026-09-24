@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Setup script for json-clankers services on json-mini.
+# Setup script for json-inference services on json-mini.
 # Installs systemd user services for Ollama and Open WebUI.
 #
 # Prerequisites: Run from within the devshell (direnv allow).
@@ -59,16 +59,16 @@ EOF
 
 SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 
-info "Installing clankers CLI..."
-install "$SCRIPT_DIR/clankers" "$HOME/.local/bin/clankers"
+info "Installing inference CLI..."
+install "$SCRIPT_DIR/inference" "$HOME/.local/bin/inference"
 
 systemctl --user daemon-reload
 systemctl --user enable ollama.service open-webui.service
 
 echo
 info "Setup complete. Services are enabled but not started."
-info "Use 'clankers start' to spin them up, 'clankers stop' to conserve resources."
+info "Use 'inference start' to spin them up, 'inference stop' to conserve resources."
 echo
 info "Pull a model to get started:"
-info "  clankers start"
+info "  inference start"
 info "  ollama pull llama3.1:8b"

@@ -4,7 +4,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-json-clankers — local AI model experimentation and agent patterns, running on json-mini.
+json-inference — local model serving and evaluation. The primary target is the
+two-node DGX Spark cluster (vLLM/SGLang serving configs, model choices, eval and
+benchmark harness); json-mini is a small-model secondary. The Sparks' OS,
+network and monitoring belong to json-lab, not here.
 
 ## Hardware (json-mini)
 
@@ -23,6 +26,7 @@ json-clankers — local AI model experimentation and agent patterns, running on 
 
 ## Key Commands
 
+- `inference start|stop|status` — start, stop or check Ollama + Open WebUI
 - `ollama list` — show downloaded models
 - `ollama pull <model>` — download a model (e.g. `llama3.1:8b`, `mistral`, `phi3`)
 - `ollama run <model>` — interactive chat

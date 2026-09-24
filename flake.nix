@@ -1,5 +1,5 @@
 {
-  description = "json-clankers — local AI model experimentation and agent patterns.";
+  description = "json-inference — local model serving and evaluation.";
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
