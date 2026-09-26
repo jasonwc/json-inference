@@ -19,6 +19,7 @@ inference up gpt-oss-120b           # stop anything running, serve, wait until r
 inference bench gpt-oss-120b        # smoke + speed benchmark, saved to results/
 inference results                   # latest result per model, side by side
 inference status | logs <model> [-f] | down
+inference cancel <model>            # stop its background downloads/boots on the Sparks
 ```
 
 Clients point at `http://json-spark-1.json.lab:<port>/v1` with the model's

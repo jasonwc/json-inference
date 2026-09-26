@@ -19,6 +19,8 @@ def main() -> None:
         s.add_argument("model")
         if name == "pull":
             s.add_argument("--no-wait", action="store_true", help="start the download and return")
+    cn = sub.add_parser("cancel", help="stop MODEL's background jobs (downloads, recipe boots)")
+    cn.add_argument("model")
     lg = sub.add_parser("logs", help="server logs for MODEL")
     lg.add_argument("model")
     lg.add_argument("-f", "--follow", action="store_true")
@@ -46,6 +48,8 @@ def main() -> None:
             engines.pull(cluster, model, wait=not args.no_wait)
         elif args.cmd == "up":
             engines.up(cluster, model)
+        elif args.cmd == "cancel":
+            engines.cancel(cluster, model)
         elif args.cmd == "logs":
             engines.logs(cluster, model, args.follow)
         elif args.cmd == "bench":

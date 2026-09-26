@@ -6,6 +6,8 @@ port = 8000
 [vllm]
 image = "nvcr.io/nvidia/vllm:26.05-py3"
 model = "openai/gpt-oss-120b"
+# The repo also carries original/ and metal/ copies of the weights (~130 GB).
+download_exclude = ["original/*", "metal/*"]
 args = [
   "--max-model-len", "131072",
   "--gpu-memory-utilization", "0.8",

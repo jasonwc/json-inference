@@ -3,7 +3,7 @@
 Measures, all client-side over streaming chat completions:
   smoke     17 x 19 = 323 answered correctly (catches a broken model/template)
   decode    one stream: time to first token and decode tokens/s
-  prefill   prompts of N tokens with max_tokens=1: prompt tokens / TTFT.
+  prefill   prompts of N tokens: prompt tokens / time to first visible token.
             Prompts are random words, so the prefix cache can't help.
   parallel  1/2/4 concurrent streams: aggregate decode tokens/s
 
@@ -154,7 +154,10 @@ def run(base: str, model: Model) -> dict:
     for n in model.prefill_tokens:
         print(f"prefill (~{n} tokens) ...", flush=True)
         try:
-            r = stream_chat(base, name, random_prompt(n), 1)
+            # 16, not 1: some chat formats (gpt-oss harmony) spend their first
+            # tokens on markup that never reaches the client. TTFT is the first
+            # visible token, still dominated by prefill at these lengths.
+            r = stream_chat(base, name, random_prompt(n), 16)
             p = {
                 "target_tokens": n,
                 "prompt_tokens": r["prompt_tokens"],

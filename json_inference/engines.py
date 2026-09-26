@@ -29,7 +29,9 @@ READY_TIMEOUT_S = 45 * 60
 # --- detached remote jobs --------------------------------------------------
 # Long steps (downloads, launcher boots) run under nohup on the Spark, so a
 # dropped SSH session or a closed laptop doesn't kill them. The CLI follows the
-# log until the job exits; Ctrl-C stops following, not the job.
+# log until the job exits; Ctrl-C stops following, not the job. Each job is its
+# own session (setsid), so `cancel` stops it and everything it spawned by
+# process group; child processes' names (e.g. hf's python wrapper) don't matter.
 
 
 def run_detached(cluster: Cluster, node: Node, job: str, script: str) -> str:
@@ -38,11 +40,17 @@ def run_detached(cluster: Cluster, node: Node, job: str, script: str) -> str:
         cluster,
         node,
         f"""mkdir -p {STATE_DIR}/logs
+pidfile={STATE_DIR}/logs/{job}.pid
+if [ -f "$pidfile" ] && kill -0 -- "-$(cat "$pidfile")" 2>/dev/null; then
+  echo "{job} is already running (pgid $(cat "$pidfile")); \\`inference cancel\\` it first" >&2
+  exit 1
+fi
 cat > {STATE_DIR}/logs/{job}.sh <<'JSON_INFERENCE_JOB'
 set -euo pipefail
 {script}
 JSON_INFERENCE_JOB
-nohup bash -l {STATE_DIR}/logs/{job}.sh > {log_path} 2>&1 < /dev/null &
+setsid nohup bash -l {STATE_DIR}/logs/{job}.sh > {log_path} 2>&1 < /dev/null &
+echo $! > "$pidfile"
 echo $!""",
     )
     remote.log(node, f"{job}: pid {pid}, log {node.name}:{log_path}")
@@ -60,6 +68,25 @@ def follow(cluster: Cluster, node: Node, job: str, pid: str) -> None:
     # writing a marker line on success.
     if remote.output(cluster, node, f"tail -n 1 {log_path}") != f"[{job}] ok":
         raise SystemExit(f"{node.name}: {job} failed; see {log_path}")
+
+
+def cancel(cluster: Cluster, model: Model) -> None:
+    """Stop the model's detached jobs (pull/start) on both nodes."""
+    for node in (cluster.head, cluster.worker):
+        out = remote.output(
+            cluster,
+            node,
+            f"""for pidfile in {STATE_DIR}/logs/*-{model.name}.pid; do
+  [ -f "$pidfile" ] || continue
+  pgid=$(cat "$pidfile")
+  if kill -0 -- "-$pgid" 2>/dev/null; then
+    kill -TERM -- "-$pgid"; echo "stopped $(basename "$pidfile" .pid) (pgid $pgid)"
+  fi
+  rm -f "$pidfile"
+done""",
+        )
+        for line in out.splitlines():
+            remote.log(node, line)
 
 
 def detached(cluster: Cluster, node: Node, job: str, script: str, wait: bool = True) -> None:
@@ -126,6 +153,9 @@ def _nccl_env(cluster: Cluster, node: Node) -> list[str]:
 def vllm_pull(cluster: Cluster, model: Model, wait: bool) -> None:
     v = model.vllm
     revision = f" --revision {shlex.quote(v['revision'])}" if "revision" in v else ""
+    # Some repos ship the same weights in several formats (gpt-oss: original/,
+    # metal/); `download_exclude` skips the ones vLLM doesn't load.
+    revision += "".join(f" --exclude {shlex.quote(p)}" for p in v.get("download_exclude", []))
     for node in cluster.nodes(model.nodes):
         detached(
             cluster,

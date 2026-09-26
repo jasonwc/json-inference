@@ -1,0 +1,80 @@
+{
+  "model": "gpt-oss-120b",
+  "timestamp": "2026-09-26T03:29:07Z",
+  "json_inference_rev": "dec90ed-dirty",
+  "endpoint": "http://json-spark-1.json.lab:8000/v1",
+  "definition": {
+    "description": "OpenAI gpt-oss-120b (MXFP4, ~65 GB) on one Spark: the single-node baseline",
+    "engine": "vllm",
+    "nodes": 1,
+    "port": 8000,
+    "vllm": {
+      "image": "nvcr.io/nvidia/vllm:26.05-py3",
+      "model": "openai/gpt-oss-120b",
+      "download_exclude": [
+        "original/*",
+        "metal/*"
+      ],
+      "args": [
+        "--max-model-len",
+        "131072",
+        "--gpu-memory-utilization",
+        "0.8"
+      ]
+    },
+    "bench": {
+      "prefill_tokens": [
+        2048,
+        8192,
+        32768
+      ]
+    }
+  },
+  "smoke": {
+    "pass": true,
+    "answer": "323"
+  },
+  "decode": {
+    "prompt_tokens": 88,
+    "completion_tokens": 512,
+    "ttft_s": 0.164,
+    "decode_tok_s": 38.24
+  },
+  "prefill": [
+    {
+      "target_tokens": 2048,
+      "prompt_tokens": 1740,
+      "ttft_s": 0.546,
+      "prefill_tok_s": 3186.8
+    },
+    {
+      "target_tokens": 8192,
+      "prompt_tokens": 6693,
+      "ttft_s": 1.792,
+      "prefill_tok_s": 3734.9
+    },
+    {
+      "target_tokens": 32768,
+      "prompt_tokens": 26562,
+      "ttft_s": 9.8,
+      "prefill_tok_s": 2710.4
+    }
+  ],
+  "parallel": [
+    {
+      "streams": 1,
+      "aggregate_tok_s": 37.92,
+      "mean_ttft_s": 0.165
+    },
+    {
+      "streams": 2,
+      "aggregate_tok_s": 60.18,
+      "mean_ttft_s": 0.236
+    },
+    {
+      "streams": 4,
+      "aggregate_tok_s": 91.37,
+      "mean_ttft_s": 0.284
+    }
+  ]
+}
