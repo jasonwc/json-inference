@@ -140,7 +140,9 @@ def _nccl_env(cluster: Cluster, node: Node) -> list[str]:
         "MASTER_ADDR": cluster.head.cx7_ip,
         "UCX_NET_DEVICES": netdev,
         "NCCL_SOCKET_IFNAME": netdev,
-        "NCCL_IB_HCA": cluster.cx7_ibdev,
+        # No NCCL_IB_HCA pin: QSFP port 0 is two RoCE devices (one per PCIe
+        # path) and NCCL needs both for full bandwidth, as in json-lab's
+        # sparks/nccl-test.sh.
         "NCCL_IB_GID_INDEX": str(cluster.cx7_gid_index),
         "OMPI_MCA_btl_tcp_if_include": netdev,
         "GLOO_SOCKET_IFNAME": netdev,
@@ -195,6 +197,10 @@ def vllm_up(cluster: Cluster, model: Model) -> None:
                 [
                     *_docker_base(model, name),
                     *_nccl_env(cluster, node),
+                    # RDMA for NCCL. Without the device NCCL silently falls back
+                    # to TCP over the QSFP netdev (NVIDIA's run_cluster.sh omits it).
+                    "--device", "/dev/infiniband",
+                    "--cap-add", "IPC_LOCK",
                     "--entrypoint", "/bin/bash",
                     image, "-c", ray + start,
                 ]  # fmt: skip
