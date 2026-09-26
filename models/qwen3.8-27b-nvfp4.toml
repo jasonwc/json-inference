@@ -1,0 +1,24 @@
+description = "NVIDIA Qwen3.8-27B NVFP4 (dense, ~18 GB) on one Spark with MTP; vLLM Recipes marks it verified on GB10"
+engine = "vllm"
+nodes = 1
+port = 8000
+
+[vllm]
+image = "vllm/vllm-openai:qwen38"
+model = "nvidia/Qwen3.8-27B-NVFP4"
+args = [
+  "--max-model-len", "262144",
+  "--gpu-memory-utilization", "0.7",
+  "--kv-cache-dtype", "fp8",
+  "--max-num-seqs", "8",
+  "--async-scheduling",
+  "--enable-prefix-caching",
+  "--speculative-config", '{"method":"mtp","num_speculative_tokens":5}',
+  "--reasoning-parser", "qwen3",
+  # Tool calls for agent harnesses.
+  "--enable-auto-tool-choice",
+  "--tool-call-parser", "qwen3_xml",
+]
+
+[bench]
+prefill_tokens = [2048, 8192, 32768]

@@ -1,0 +1,38 @@
+description = "DeepSeek-V4-Flash Vision-Exp (native FP4+FP8, ~157 GiB), TP=2 + DSpark MTP via MiaAI-Lab's most-used two-Spark recipe"
+# Runs ghcr.io/anemll/dspark-vllm-gx10 (a third-party vLLM build the recipe
+# pins by digest; approved 2026-09-26). The recipe runs docker compose on the
+# worker from the same checkout path, hence worker_checkout.
+engine = "launcher"
+nodes = 2
+port = 8000
+served_name = "deepseek-v4-flash-vision-exp"
+
+[launcher]
+repo = "https://github.com/MiaAI-Lab/DeepSeek-v4-Flash-DSpark-2x-DGX-Spark"
+rev = "97e8733238f81f5fdc44b241f8996a7858825744"
+env_template = ".env.dspark.example"
+env_file = ".env.dspark"
+image_key = "DSPARK_VLLM_IMAGE"
+worker_checkout = true
+pull = "./prepare-dspark-model-cache.sh --official --yes"
+start = "./start-deepseek-v4-flash-dspark.sh"
+stop = "./stop-deepseek-v4-flash-dspark.sh"
+logs = "./logs-deepseek-v4-flash-dspark.sh"
+
+[launcher.env]
+WORKER_HOST = "{worker.cx7_ip}"
+MASTER_ADDR = "{head.cx7_ip}"
+VLLM_HOST_IP = "{head.cx7_ip}"
+WORKER_VLLM_HOST_IP = "{worker.cx7_ip}"
+# Both RoCE devices behind QSFP port 0, as in json-lab's NCCL test.
+NCCL_IB_HCA = "rocep1s0f0,roceP2p1s0f0"
+NCCL_SOCKET_IFNAME = "{cx7.netdev}"
+TP_SOCKET_IFNAME = "{cx7.netdev}"
+GLOO_SOCKET_IFNAME = "{cx7.netdev}"
+# Weights only on the head; the worker mounts them over NFS on the QSFP link
+# instead of downloading 157 GiB from the internet a second time.
+DSPARK_WORKER_HF_NFS = "1"
+VLLM_PORT = "8000"
+
+[bench]
+prefill_tokens = [2048, 8192, 32768]

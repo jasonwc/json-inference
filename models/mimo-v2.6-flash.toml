@@ -1,0 +1,33 @@
+description = "Xiaomi MiMo-V2.6-Flash-RL (309B / 15B active, MXFP4 experts, ~161 GiB), SGLang TP=2 + EAGLE MTP via MiaAI-Lab's two-Spark recipe"
+# The recipe builds its own image FROM a pinned SGLang nightly and ships it to
+# the worker (`build`); weights live only on the head and the worker reads
+# them over NFS on the QSFP link.
+engine = "launcher"
+nodes = 2
+port = 8000
+served_name = "MiMo-v2.6-Flash"
+
+[launcher]
+repo = "https://github.com/MiaAI-Lab/MiMo-V2.6-Flash-2x-DGX-Sparks"
+rev = "201be3e743d215291feee09fe470822ec453c63d"
+pull = "./start.sh download && ./start.sh build"
+start = "./start.sh serve"
+stop = "./start.sh stop"
+logs = "./start.sh logs"
+
+[launcher.env]
+HEAD_IP = "{head.cx7_ip}"
+WORKER_IPS = "{worker.cx7_ip}"
+WORKER_HOSTS = "{worker.cx7_ip}"
+WORKER_USER = "{user}"
+SSH_IDENTITY = "$HOME/.ssh/id_ed25519"
+WORKER_DIR = "/home/{user}/mimo26-tp2"
+WORKER_SSD_DIR = "/home/{user}/mimo26-tp2/ssd"
+FABRIC_IFACE = "{cx7.netdev}"
+IB_HCA = "rocep1s0f0,roceP2p1s0f0"
+NFS_SERVER_IP_1 = "{head.cx7_ip}"
+NFS_CLIENTS = "{worker.cx7_ip},192.168.100.0/24"
+PORT = "8000"
+
+[bench]
+prefill_tokens = [2048, 8192, 32768]

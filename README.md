@@ -67,6 +67,8 @@ runs:
 - **prefill**: prompt tokens/s at each `prefill_tokens` size, using random
   prompts so the prefix cache doesn't help
 - **parallel**: aggregate tokens/s at 1, 2 and 4 concurrent streams
+- **code**: single-stream and 4-stream decode on a coding prompt at temperature
+  0, where speculative decoding helps most (prose at 0.7 is near its worst case)
 
 `inference up` also records how long the switch took (`results/<model>/up-<timestamp>.json`,
 shown as "start s" in `inference results`). Each benchmark run is saved as

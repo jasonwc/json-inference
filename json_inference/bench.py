@@ -6,6 +6,9 @@ Measures, all client-side over streaming chat completions:
   prefill   prompts of N tokens: prompt tokens / time to first visible token.
             Prompts are random words, so the prefix cache can't help.
   parallel  1/2/4 concurrent streams: aggregate decode tokens/s
+  code      the decode and 4-stream tests again on a coding prompt at
+            temperature 0, the case speculative decoding (MTP, DFlash,
+            DSpark) is tuned for; prose at 0.7 is closer to its worst case
 
 Token counts come from the server's usage report and include reasoning
 tokens, since those cost the same time to generate.
@@ -23,6 +26,11 @@ from .config import REPO_ROOT, RESULTS_DIR, Model
 from .engines import git_rev
 
 DECODE_PROMPT = "Write a detailed, 600-word short story about a lighthouse keeper who finds a message in a bottle."
+CODE_PROMPT = (
+    "Write a complete Python module implementing a thread-safe LRU cache class with get, put and "
+    "delete, full type hints and docstrings, followed by a pytest test suite covering eviction "
+    "order, capacity 1, updates of existing keys and concurrent access. Output only the code."
+)
 WORDS = (
     "river stone lantern orbit copper meadow signal harbor quiet ember "
     "falcon glacier thunder violet cedar canyon beacon marble prism tide"
@@ -36,12 +44,12 @@ def _post(url: str, body: dict, timeout: float = 1800):
     return urllib.request.urlopen(req, timeout=timeout)
 
 
-def stream_chat(base: str, model: str, prompt: str, max_tokens: int) -> dict:
+def stream_chat(base: str, model: str, prompt: str, max_tokens: int, temperature: float = 0.7) -> dict:
     body = {
         "model": model,
         "messages": [{"role": "user", "content": prompt}],
         "max_tokens": max_tokens,
-        "temperature": 0.7,
+        "temperature": temperature,
         "stream": True,
         "stream_options": {"include_usage": True},
     }
@@ -94,13 +102,13 @@ def random_prompt(tokens: int) -> str:
     return f"Here is a list of words:\n{words}\nHow many times does the word 'river' appear? Answer briefly."
 
 
-def parallel(base: str, model: str, streams: int) -> dict:
+def parallel(base: str, model: str, streams: int, prompt: str = DECODE_PROMPT, temperature: float = 0.7) -> dict:
     results: list[dict] = []
     errors: list[str] = []
 
     def one():
         try:
-            results.append(stream_chat(base, model, DECODE_PROMPT, 256))
+            results.append(stream_chat(base, model, prompt, 256, temperature))
         except Exception as e:  # noqa: BLE001 - recorded in the results
             errors.append(str(e))
 
@@ -170,6 +178,14 @@ def run(base: str, model: Model) -> dict:
         report["parallel"].append(p)
         print(f"  {p}")
 
+    print("code decode (1 stream, 512 tokens, temperature 0) ...", flush=True)
+    d = _strip(stream_chat(base, name, CODE_PROMPT, 512, 0))
+    report["decode_code"] = d
+    print(f"  ttft {d['ttft_s']} s, decode {d['decode_tok_s']} tok/s")
+    print("code parallel (4 streams x 256 tokens, temperature 0) ...", flush=True)
+    report["parallel_code"] = [parallel(base, name, 4, CODE_PROMPT, 0)]
+    print(f"  {report['parallel_code'][0]}")
+
     out_dir = RESULTS_DIR / model.name
     out_dir.mkdir(parents=True, exist_ok=True)
     path = out_dir / f"{report['timestamp'].replace(':', '')}.json"
@@ -199,10 +215,12 @@ def summary() -> None:
                 r["decode"]["decode_tok_s"],
                 " / ".join(f"{k // 1024}k:{v}" for k, v in sorted(prefill.items())),
                 agg.get(4, "-"),
+                r.get("decode_code", {}).get("decode_tok_s", "-"),
+                (r.get("parallel_code") or [{}])[0].get("aggregate_tok_s", "-"),
                 start,
             ]
         )
-    header = ["model", "date", "smoke", "ttft s", "decode tok/s", "prefill tok/s", "x4 agg tok/s", "start s"]
+    header = ["model", "date", "smoke", "ttft s", "prose tok/s", "prefill tok/s", "prose x4", "code tok/s", "code x4", "start s"]
     widths = [max(len(str(x)) for x in col) for col in zip(header, *rows)]
     for row in [header, *rows]:
         print("  ".join(str(x).ljust(w) for x, w in zip(row, widths)))

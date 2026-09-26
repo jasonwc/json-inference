@@ -258,34 +258,55 @@ def _checkout(model: Model) -> str:
 
 
 def launcher_prepare(cluster: Cluster, model: Model) -> None:
-    """Pinned checkout on the head, plus the rendered .env."""
+    """Pinned checkout on the head, plus the rendered env file. Recipes that
+    run their own scripts on the worker (`worker_checkout = true`) get the
+    same directory mirrored there at the same path."""
     lc = model.launcher
     env_lines = "\n".join(f"{k}={render(str(v), cluster)}" for k, v in lc.get("env", {}).items())
     template = shlex.quote(lc.get("env_template", ".env.example"))
+    env_file = shlex.quote(lc.get("env_file", ".env"))
+    worker = f"{cluster.user}@{cluster.worker.cx7_ip}"
+    mirror = (
+        f'ssh -o BatchMode=yes {worker} mkdir -p "$dir"\n'
+        f'rsync -a --delete "$dir/" {worker}:"$dir/"'
+        if lc.get("worker_checkout")
+        else ""
+    )
     remote.run(
         cluster,
         cluster.head,
-        f"""dir={_checkout(model)}
+        f"""dir=$(eval echo {_checkout(model)})
 [ -d "$dir/.git" ] || git clone -q {shlex.quote(lc['repo'])} "$dir"
 git -C "$dir" fetch -q origin
 git -C "$dir" -c advice.detachedHead=false checkout -q {shlex.quote(lc['rev'])}
 {{ cat "$dir/"{template}; printf '\\n# --- json-inference overrides (models/{model.name}.toml) ---\\n'; cat <<'ENV'
 {env_lines}
 ENV
-}} > "$dir/.env"
+}} > "$dir/"{env_file}
 # The recipe reaches the worker over the QSFP link; it SSHes with BatchMode.
 ssh-keygen -F {cluster.worker.cx7_ip} >/dev/null 2>&1 \\
-  || ssh-keyscan -t ed25519 {cluster.worker.cx7_ip} 2>/dev/null >> ~/.ssh/known_hosts""",
+  || ssh-keyscan -t ed25519 {cluster.worker.cx7_ip} 2>/dev/null >> ~/.ssh/known_hosts
+{mirror}""",
     )
 
 
 def launcher_run(cluster: Cluster, model: Model, step: str, wait: bool = True) -> None:
-    script = f"cd {_checkout(model)}\n{model.launcher[step]}"
+    lc = model.launcher
+    script = f"cd {_checkout(model)}\n{lc[step]}"
     if step == "pull":
         # Some recipes' download steps fetch only weights and pull their image
-        # at launch; pull it here so `up` doesn't wait on it. The recipes use
-        # an IMAGE key in their .env.
-        script += '\nIMAGE=$(set -a; . ./.env; echo "${IMAGE:-}")\n[ -z "$IMAGE" ] || docker pull -q "$IMAGE"'
+        # at launch, on each node; pull it here so `up` doesn't wait on it.
+        # A tag the recipe builds itself isn't pullable, which is fine as long
+        # as the pull step already built it.
+        image_key = lc.get("image_key", "IMAGE")
+        env_file = shlex.quote(lc.get("env_file", ".env"))
+        have = 'docker pull -q "$IMAGE" >/dev/null 2>&1 || docker image inspect "$IMAGE" >/dev/null'
+        script += f'\nIMAGE=$(set -a; . ./{env_file}; echo "${{{image_key}:-}}")\n[ -z "$IMAGE" ] || {have}'
+        if model.nodes == 2:
+            worker = f"{cluster.user}@{cluster.worker.cx7_ip}"
+            script += f"\n[ -z \"$IMAGE\" ] || ssh -o BatchMode=yes {worker} {shlex.quote(have.replace('$IMAGE', '__IMG__'))}".replace(
+                "__IMG__", "'\"$IMAGE\"'"
+            )
     detached(cluster, cluster.head, f"{step}-{model.name}", script, wait)
 
 
