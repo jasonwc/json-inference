@@ -381,7 +381,11 @@ def down(cluster: Cluster) -> None:
 docker rm -f {name} >/dev/null 2>&1 && exit 0
 pid=$(docker inspect -f '{{{{.State.Pid}}}}' {name})
 [ "$pid" -gt 0 ] && sudo kill -9 "$pid"
-sleep 2
+# The kernel nfsd can take a while to let the container's init go.
+for _ in $(seq 60); do
+  [ "$(docker inspect -f '{{{{.State.Running}}}}' {name})" = false ] && break
+  sleep 1
+done
 docker rm -f {name} >/dev/null""",
             check=False,
         )
