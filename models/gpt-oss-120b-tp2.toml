@@ -11,6 +11,9 @@ download_exclude = ["original/*", "metal/*"]
 args = [
   "--max-model-len", "131072",
   "--gpu-memory-utilization", "0.8",
+  # Tool calls for agent harnesses (opencode, pi, dsh, Codex).
+  "--enable-auto-tool-choice",
+  "--tool-call-parser", "openai",
 ]
 
 [bench]
