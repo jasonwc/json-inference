@@ -20,6 +20,7 @@ between them). The Sparks' OS, network and monitoring belong to json-lab
   - `bench.py`: benchmark and results table
 - `bin/inference`: runs the CLI from the checkout (the devshell puts `bin/` on PATH)
 - `results/<model>/<timestamp>.json`: committed benchmark runs
+- `docs/`: write-ups of benchmark sweeps and findings
 
 ## Key Commands
 
