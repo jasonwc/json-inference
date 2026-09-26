@@ -1,0 +1,101 @@
+{
+  "model": "qwen3.8-27b-nvfp4",
+  "timestamp": "2026-09-26T08:15:26Z",
+  "json_inference_rev": "9228fb2-dirty",
+  "endpoint": "http://json-spark-1.json.lab:8000/v1",
+  "definition": {
+    "description": "NVIDIA Qwen3.8-27B NVFP4 (dense, ~18 GB) on one Spark with MTP; vLLM Recipes marks it verified on GB10",
+    "engine": "vllm",
+    "nodes": 1,
+    "port": 8000,
+    "vllm": {
+      "image": "vllm/vllm-openai:qwen38",
+      "model": "nvidia/Qwen3.8-27B-NVFP4",
+      "args": [
+        "--max-model-len",
+        "262144",
+        "--gpu-memory-utilization",
+        "0.7",
+        "--kv-cache-dtype",
+        "fp8",
+        "--max-num-seqs",
+        "8",
+        "--async-scheduling",
+        "--enable-prefix-caching",
+        "--speculative-config",
+        "{\"method\":\"mtp\",\"num_speculative_tokens\":5}",
+        "--reasoning-parser",
+        "qwen3",
+        "--enable-auto-tool-choice",
+        "--tool-call-parser",
+        "qwen3_xml"
+      ]
+    },
+    "bench": {
+      "prefill_tokens": [
+        2048,
+        8192,
+        32768
+      ]
+    }
+  },
+  "smoke": {
+    "pass": true,
+    "answer": "323"
+  },
+  "decode": {
+    "prompt_tokens": 76,
+    "completion_tokens": 512,
+    "ttft_s": 0.265,
+    "decode_tok_s": 18.11
+  },
+  "prefill": [
+    {
+      "target_tokens": 2048,
+      "prompt_tokens": 1817,
+      "ttft_s": 0.906,
+      "prefill_tok_s": 2005.5
+    },
+    {
+      "target_tokens": 8192,
+      "prompt_tokens": 7008,
+      "ttft_s": 3.304,
+      "prefill_tok_s": 2121.1
+    },
+    {
+      "target_tokens": 32768,
+      "prompt_tokens": 27828,
+      "ttft_s": 14.561,
+      "prefill_tok_s": 1911.1
+    }
+  ],
+  "parallel": [
+    {
+      "streams": 1,
+      "aggregate_tok_s": 22.73,
+      "mean_ttft_s": 0.261
+    },
+    {
+      "streams": 2,
+      "aggregate_tok_s": 33.86,
+      "mean_ttft_s": 0.754
+    },
+    {
+      "streams": 4,
+      "aggregate_tok_s": 65.62,
+      "mean_ttft_s": 0.497
+    }
+  ],
+  "decode_code": {
+    "prompt_tokens": 106,
+    "completion_tokens": 512,
+    "ttft_s": 0.331,
+    "decode_tok_s": 24.56
+  },
+  "parallel_code": [
+    {
+      "streams": 4,
+      "error": "stream ended without tokens or usage"
+    }
+  ]
+}

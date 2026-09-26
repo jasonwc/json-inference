@@ -1,0 +1,7 @@
+{
+  "model": "qwen3.8-27b-nvfp4",
+  "timestamp": "2026-09-26T08:15:26Z",
+  "json_inference_rev": "9228fb2",
+  "stop_s": 110,
+  "start_s": 372
+}
