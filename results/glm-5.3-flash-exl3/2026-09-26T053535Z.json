@@ -1,0 +1,88 @@
+{
+  "model": "glm-5.3-flash-exl3",
+  "timestamp": "2026-09-26T05:35:35Z",
+  "json_inference_rev": "551bb64-dirty",
+  "endpoint": "http://json-spark-1.json.lab:8000/v1",
+  "definition": {
+    "description": "GLM-5.3-Flash, EXL3 4 bpw (~164 GiB + ~2.3 GiB DFlash2 drafter), TP=2 via MiaAI-Lab's two-Spark recipe",
+    "engine": "launcher",
+    "nodes": 2,
+    "port": 8000,
+    "served_name": "GLM-5.3-Flash-EXL3",
+    "launcher": {
+      "repo": "https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks",
+      "rev": "75a0e9e90b737729e1536a52ab4ea3c5085cf83b",
+      "pull": "./download.sh",
+      "start": "./start.sh",
+      "stop": "./start.sh stop",
+      "logs": "./start.sh logs",
+      "env": {
+        "HEAD_IP": "{head.cx7_ip}",
+        "WORKER_IP": "{worker.cx7_ip}",
+        "WORKER_USER": "{user}",
+        "PORT": "8000",
+        "HEAD_CX7_IF": "{cx7.netdev}",
+        "WORKER_CX7_IF": "{cx7.netdev}",
+        "HEAD_CX7_IB": "{cx7.ibdev}",
+        "WORKER_CX7_IB": "{cx7.ibdev}",
+        "NCCL_IB_GID_INDEX": "{cx7.gid_index}",
+        "HEAD_GID": "{cx7.gid_index}",
+        "WORKER_GID": "{cx7.gid_index}"
+      }
+    },
+    "bench": {
+      "prefill_tokens": [
+        2048,
+        8192,
+        32768
+      ]
+    }
+  },
+  "smoke": {
+    "pass": true,
+    "answer": "323"
+  },
+  "decode": {
+    "prompt_tokens": 34,
+    "completion_tokens": 512,
+    "ttft_s": 0.376,
+    "decode_tok_s": 20.06
+  },
+  "prefill": [
+    {
+      "target_tokens": 2048,
+      "prompt_tokens": 1779,
+      "ttft_s": 1.512,
+      "prefill_tok_s": 1176.6
+    },
+    {
+      "target_tokens": 8192,
+      "prompt_tokens": 6961,
+      "ttft_s": 5.377,
+      "prefill_tok_s": 1294.6
+    },
+    {
+      "target_tokens": 32768,
+      "prompt_tokens": 27848,
+      "ttft_s": 18.349,
+      "prefill_tok_s": 1517.7
+    }
+  ],
+  "parallel": [
+    {
+      "streams": 1,
+      "aggregate_tok_s": 16.69,
+      "mean_ttft_s": 0.583
+    },
+    {
+      "streams": 2,
+      "aggregate_tok_s": 35.83,
+      "mean_ttft_s": 0.543
+    },
+    {
+      "streams": 4,
+      "aggregate_tok_s": 43.11,
+      "mean_ttft_s": 0.905
+    }
+  ]
+}
