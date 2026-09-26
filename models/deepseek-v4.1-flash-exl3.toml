@@ -9,7 +9,10 @@ served_name = "DeepSeek-v4.1-Flash-EXL3"
 [launcher]
 repo = "https://github.com/MiaAI-Lab/DeepSeek-v4.1-Flash-EXL3-2x-DGX-Sparks"
 rev = "6f7d1590ad49a2b8995188e45d7b9db31e677452"
-pull = "./download.sh"
+# `pack` lays out each rank's Engram rows on its own NVMe (~/dsv41-engram);
+# start mounts them if present. The recipe reports +25-50% prefill, since
+# otherwise spark-2 reads Engram rows over NFS at runtime.
+pull = "./download.sh && ./start.sh pack"
 start = "./start.sh"
 stop = "./start.sh stop"
 logs = "./start.sh logs"

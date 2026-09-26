@@ -294,6 +294,17 @@ def launcher_run(cluster: Cluster, model: Model, step: str, wait: bool = True) -
     lc = model.launcher
     script = f"cd {_checkout(model)}\n{lc[step]}"
     if step == "pull":
+        # Some recipes' prepare steps refuse to run without their image, so
+        # try pulling it first too (best effort: a tag the recipe builds
+        # itself doesn't exist yet at this point).
+        image_key = lc.get("image_key", "IMAGE")
+        env_file = shlex.quote(lc.get("env_file", ".env"))
+        script = (
+            f"cd {_checkout(model)}\n"
+            f'IMAGE=$(set -a; . ./{env_file}; echo "${{{image_key}:-}}")\n'
+            '[ -z "$IMAGE" ] || docker pull -q "$IMAGE" >/dev/null 2>&1 || true\n'
+            f"{lc[step]}"
+        )
         # Some recipes' download steps fetch only weights and pull their image
         # at launch, on each node; pull it here so `up` doesn't wait on it.
         # A tag the recipe builds itself isn't pullable, which is fine as long
