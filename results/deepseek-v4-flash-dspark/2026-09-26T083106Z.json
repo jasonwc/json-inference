@@ -1,0 +1,105 @@
+{
+  "model": "deepseek-v4-flash-dspark",
+  "timestamp": "2026-09-26T08:31:06Z",
+  "json_inference_rev": "f932bcf-dirty",
+  "endpoint": "http://json-spark-1.json.lab:8000/v1",
+  "definition": {
+    "description": "DeepSeek-V4-Flash Vision-Exp (native FP4+FP8, ~157 GiB), TP=2 + DSpark MTP via MiaAI-Lab's most-used two-Spark recipe",
+    "engine": "launcher",
+    "nodes": 2,
+    "port": 8000,
+    "served_name": "deepseek-v4-flash-vision-exp",
+    "launcher": {
+      "repo": "https://github.com/MiaAI-Lab/DeepSeek-v4-Flash-DSpark-2x-DGX-Spark",
+      "rev": "97e8733238f81f5fdc44b241f8996a7858825744",
+      "env_template": ".env.dspark.example",
+      "env_file": ".env.dspark",
+      "image_key": "DSPARK_VLLM_IMAGE",
+      "worker_checkout": true,
+      "pull": "./prepare-dspark-model-cache.sh --official --yes",
+      "start": "./start-deepseek-v4-flash-dspark.sh",
+      "stop": "./stop-deepseek-v4-flash-dspark.sh",
+      "nfs_container": "dspark-nfs",
+      "logs": "./logs-deepseek-v4-flash-dspark.sh",
+      "env": {
+        "WORKER_HOST": "{worker.cx7_ip}",
+        "MASTER_ADDR": "{head.cx7_ip}",
+        "VLLM_HOST_IP": "{head.cx7_ip}",
+        "WORKER_VLLM_HOST_IP": "{worker.cx7_ip}",
+        "NCCL_IB_HCA": "rocep1s0f0,roceP2p1s0f0",
+        "NCCL_SOCKET_IFNAME": "{cx7.netdev}",
+        "TP_SOCKET_IFNAME": "{cx7.netdev}",
+        "GLOO_SOCKET_IFNAME": "{cx7.netdev}",
+        "DSPARK_WORKER_HF_NFS": "1",
+        "VLLM_PORT": "8000"
+      }
+    },
+    "bench": {
+      "prefill_tokens": [
+        2048,
+        8192,
+        32768
+      ]
+    }
+  },
+  "smoke": {
+    "pass": true,
+    "answer": "323"
+  },
+  "decode": {
+    "prompt_tokens": 25,
+    "completion_tokens": 512,
+    "ttft_s": 1.153,
+    "decode_tok_s": 31.83
+  },
+  "prefill": [
+    {
+      "target_tokens": 2048,
+      "prompt_tokens": 1761,
+      "ttft_s": 1.001,
+      "prefill_tok_s": 1759.2
+    },
+    {
+      "target_tokens": 8192,
+      "prompt_tokens": 6968,
+      "ttft_s": 3.645,
+      "prefill_tok_s": 1911.7
+    },
+    {
+      "target_tokens": 32768,
+      "prompt_tokens": 27765,
+      "ttft_s": 15.668,
+      "prefill_tok_s": 1772.1
+    }
+  ],
+  "parallel": [
+    {
+      "streams": 1,
+      "aggregate_tok_s": 38.03,
+      "mean_ttft_s": 0.179
+    },
+    {
+      "streams": 2,
+      "aggregate_tok_s": 51.9,
+      "mean_ttft_s": 0.158
+    },
+    {
+      "streams": 4,
+      "aggregate_tok_s": 75.26,
+      "mean_ttft_s": 0.349
+    }
+  ],
+  "decode_code": {
+    "prompt_tokens": 59,
+    "completion_tokens": 512,
+    "ttft_s": 0.223,
+    "decode_tok_s": 37.87
+  },
+  "parallel_code": [
+    {
+      "streams": 4,
+      "aggregate_tok_s": 91.07,
+      "mean_ttft_s": 0.435
+    }
+  ]
+}
