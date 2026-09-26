@@ -1,0 +1,15 @@
+description = "gpt-oss-120b split across both Sparks (TP=2 over Ray): same model as the baseline, to measure what the second node buys"
+engine = "vllm"
+nodes = 2
+port = 8000
+
+[vllm]
+image = "nvcr.io/nvidia/vllm:26.05-py3"
+model = "openai/gpt-oss-120b"
+args = [
+  "--max-model-len", "131072",
+  "--gpu-memory-utilization", "0.8",
+]
+
+[bench]
+prefill_tokens = [2048, 8192, 32768]

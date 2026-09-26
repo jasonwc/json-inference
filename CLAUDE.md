@@ -4,38 +4,41 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-json-inference — local model serving and evaluation. The primary target is the
-two-node DGX Spark cluster (vLLM/SGLang serving configs, model choices, eval and
-benchmark harness); json-mini is a small-model secondary. The Sparks' OS,
-network and monitoring belong to json-lab, not here.
+json-inference: run, benchmark and compare models on the two-node DGX Spark
+cluster (json-spark-1 = head / API, json-spark-2 = worker, 200G QSFP link
+between them). The Sparks' OS, network and monitoring belong to json-lab
+(`sparks/`), not here. json-mini's small-model Ollama setup lives in
+`json-mini/`.
 
-## Hardware (json-mini)
+## Layout
 
-- **CPU**: AMD Ryzen AI 9 HX 370 (12 cores / 24 threads, 5.1 GHz boost, AVX-512)
-- **RAM**: 28 GB
-- **GPU**: Radeon 890M (integrated RDNA 3.5, shared memory)
-- **NPU**: AMD XDNA (Linux support maturing)
-- **OS**: Pop!_OS (x86_64-linux)
-
-## Stack
-
-- **Ollama**: Local model serving (systemd user service)
-- **Open WebUI**: Browser-based chat interface (systemd user service, port 8080)
-- **Python + uv**: Agent scripting and experimentation
-- **Nix flake**: Devshell provides all dependencies
+- `cluster.toml`: how to reach the Sparks (SSH names, QSFP IPs, NCCL netdev/RoCE device/GID)
+- `models/<name>.toml`: one serving setup per file; the file name is the model's API id
+- `json_inference/`: the CLI, stdlib-only Python 3.11+
+  - `config.py`: loading definitions
+  - `engines.py`: `vllm` and `launcher` engines, detached remote jobs
+  - `bench.py`: benchmark and results table
+- `bin/inference`: runs the CLI from the checkout (the devshell puts `bin/` on PATH)
+- `results/<model>/<timestamp>.json`: committed benchmark runs
 
 ## Key Commands
 
-- `inference start|stop|status` — start, stop or check Ollama + Open WebUI
-- `ollama list` — show downloaded models
-- `ollama pull <model>` — download a model (e.g. `llama3.1:8b`, `mistral`, `phi3`)
-- `ollama run <model>` — interactive chat
-- `systemctl --user status ollama` — check Ollama service
-- `systemctl --user status open-webui` — check Open WebUI service
-- `nix flake check` — validate flake
+- `inference list | pull <m> | up <m> | bench <m> | results | status | logs <m> [-f] | down`
+- `python3 -m py_compile json_inference/*.py`: quick syntax check
+- `nix flake check`: validate flake
 
 ## Conventions
 
-- Devshell activated via direnv (`use flake`)
-- Services managed via systemd user units (installed by `setup.sh`)
-- Model files are not committed (`.gitignore`)
+- One model at a time: `up` always runs `down` first (big models use nearly all
+  of both nodes' 128 GB unified memory).
+- The CLI runs on a LAN machine and drives the Sparks over SSH (`bash -lc`, so
+  system-manager's PATH is present). Long steps run under nohup on the Spark
+  and are followed via their log in `~/json-inference/logs/`.
+- vLLM containers follow NVIDIA's dgx-spark-playbooks (NGC image, Ray for
+  TP=2, NCCL pinned to the QSFP netdev). Serve-time downloads are off
+  (`HF_HUB_OFFLINE=1`); `pull` stages weights.
+- Third-party recipes are wrapped with `engine = "launcher"` at a pinned
+  commit, never vendored.
+- New models: add a definition, `pull`, `up`, `bench`, then commit the
+  definition and its results together.
+- Devshell activated via direnv (`use flake`).

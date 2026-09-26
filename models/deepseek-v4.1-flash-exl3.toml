@@ -1,0 +1,33 @@
+description = "DeepSeek-V4.1-Flash, EXL3 2.9 bpw (~197 GiB + ~190 GiB Engram tables), TP=2 via MiaAI-Lab's two-Spark recipe"
+# A third-party recipe with its own launcher (start.sh/download.sh), run at a
+# pinned commit. json-inference renders its .env and drives start/stop.
+engine = "launcher"
+nodes = 2
+port = 8888
+served_name = "DeepSeek-v4.1-Flash-EXL3"
+
+[launcher]
+repo = "https://github.com/MiaAI-Lab/DeepSeek-v4.1-Flash-EXL3-2x-DGX-Sparks"
+rev = "6f7d1590ad49a2b8995188e45d7b9db31e677452"
+pull = "./download.sh"
+start = "./start.sh"
+stop = "./start.sh stop"
+status = "./start.sh status"
+logs = "./start.sh logs"
+
+# Appended to the recipe's .env.example; later keys win. Nodes talk over the
+# QSFP link (the recipe's NFS weight share follows the route to WORKER_IP).
+[launcher.env]
+HEAD_IP = "{head.cx7_ip}"
+WORKER_IP = "{worker.cx7_ip}"
+WORKER_USER = "{user}"
+HEAD_CX7_IF = "{cx7.netdev}"
+WORKER_CX7_IF = "{cx7.netdev}"
+HEAD_CX7_IB = "{cx7.ibdev}"
+WORKER_CX7_IB = "{cx7.ibdev}"
+NCCL_IB_GID_INDEX = "{cx7.gid_index}"
+HEAD_GID = "{cx7.gid_index}"
+WORKER_GID = "{cx7.gid_index}"
+
+[bench]
+prefill_tokens = [2048, 8192, 32768]

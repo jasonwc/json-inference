@@ -1,0 +1,21 @@
+# The two DGX Sparks. Their OS, network and monitoring live in
+# json-lab/sparks; this file only says how json-inference reaches them.
+user = "jasonwc"
+
+# Serves the API and runs rank 0 / the Ray head.
+[head]
+name = "json-spark-1"
+ssh = "json-spark-1.json.lab"
+cx7_ip = "192.168.100.10"
+
+[worker]
+name = "json-spark-2"
+ssh = "json-spark-2.json.lab"
+cx7_ip = "192.168.100.11"
+
+# QSFP port 0 on both nodes: the netdev NCCL/Gloo bind to, and its RoCE
+# device. GID 3 is the RoCE v2 IPv4 entry on both.
+[cx7]
+netdev = "enp1s0f0np0"
+ibdev = "rocep1s0f0"
+gid_index = 3

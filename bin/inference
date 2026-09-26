@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# Run the json-inference CLI from this checkout (see json_inference/cli.py).
+repo="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+PYTHONPATH="$repo${PYTHONPATH:+:$PYTHONPATH}" exec python3 -m json_inference "$@"

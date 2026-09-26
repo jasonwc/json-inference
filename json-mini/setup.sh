@@ -59,16 +59,16 @@ EOF
 
 SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 
-info "Installing inference CLI..."
-install "$SCRIPT_DIR/inference" "$HOME/.local/bin/inference"
+info "Installing ollama-services CLI..."
+install "$SCRIPT_DIR/ollama-services" "$HOME/.local/bin/ollama-services"
 
 systemctl --user daemon-reload
 systemctl --user enable ollama.service open-webui.service
 
 echo
 info "Setup complete. Services are enabled but not started."
-info "Use 'inference start' to spin them up, 'inference stop' to conserve resources."
+info "Use 'ollama-services start' to spin them up, 'ollama-services stop' to conserve resources."
 echo
 info "Pull a model to get started:"
-info "  inference start"
+info "  ollama-services start"
 info "  ollama pull llama3.1:8b"

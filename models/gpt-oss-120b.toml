@@ -1,0 +1,16 @@
+description = "OpenAI gpt-oss-120b (MXFP4, ~65 GB) on one Spark: the single-node baseline"
+engine = "vllm"
+nodes = 1
+port = 8000
+
+[vllm]
+# NVIDIA's validated NGC image from dgx-spark-playbooks/playbook-vllm.
+image = "nvcr.io/nvidia/vllm:26.05-py3"
+model = "openai/gpt-oss-120b"
+args = [
+  "--max-model-len", "131072",
+  "--gpu-memory-utilization", "0.8",
+]
+
+[bench]
+prefill_tokens = [2048, 8192, 32768]

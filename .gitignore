@@ -2,3 +2,4 @@
 result
 *.gguf
 .claude/
+__pycache__/

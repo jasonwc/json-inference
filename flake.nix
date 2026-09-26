@@ -6,17 +6,18 @@
     flake-parts.url = "github:hercules-ci/flake-parts";
   };
 
-  outputs = inputs@{ flake-parts, ... }:
+  outputs =
+    inputs@{ flake-parts, ... }:
     flake-parts.lib.mkFlake { inherit inputs; } {
       systems = [
         "x86_64-linux"
       ];
-      perSystem = { pkgs, ... }:
+      perSystem =
+        { pkgs, ... }:
         let
           unfree-pkgs = import inputs.nixpkgs {
             system = pkgs.system;
-            config.allowUnfreePredicate = pkg:
-              builtins.elem (pkgs.lib.getName pkg) [ "open-webui" ];
+            config.allowUnfreePredicate = pkg: builtins.elem (pkgs.lib.getName pkg) [ "open-webui" ];
           };
         in
         {
@@ -28,6 +29,11 @@
               pkgs.python3
               pkgs.uv
             ];
+            # `inference` runs straight from the checkout: it reads models/ and
+            # writes results/ next to itself.
+            shellHook = ''
+              export PATH="$PWD/bin:$PATH"
+            '';
           };
         };
     };
