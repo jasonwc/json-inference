@@ -1,0 +1,105 @@
+{
+  "model": "mimo-v2.6-flash",
+  "timestamp": "2026-09-26T08:05:02Z",
+  "json_inference_rev": "867c4af-dirty",
+  "endpoint": "http://json-spark-1.json.lab:8000/v1",
+  "definition": {
+    "description": "Xiaomi MiMo-V2.6-Flash-RL (309B / 15B active, MXFP4 experts, ~161 GiB), SGLang TP=2 + EAGLE MTP via MiaAI-Lab's two-Spark recipe",
+    "engine": "launcher",
+    "nodes": 2,
+    "port": 8000,
+    "served_name": "MiMo-v2.6-Flash",
+    "launcher": {
+      "repo": "https://github.com/MiaAI-Lab/MiMo-V2.6-Flash-2x-DGX-Sparks",
+      "rev": "201be3e743d215291feee09fe470822ec453c63d",
+      "pull": "./start.sh download && ./start.sh build",
+      "start": "./start.sh serve",
+      "stop": "./start.sh stop",
+      "nfs_container": "mimo26-nfs",
+      "logs": "./start.sh logs",
+      "env": {
+        "HEAD_IP": "{head.cx7_ip}",
+        "WORKER_IPS": "{worker.cx7_ip}",
+        "WORKER_HOSTS": "{worker.cx7_ip}",
+        "WORKER_USER": "{user}",
+        "SSH_IDENTITY": "$HOME/.ssh/id_ed25519",
+        "WORKER_DIR": "/home/{user}/mimo26-tp2",
+        "WORKER_SSD_DIR": "/home/{user}/mimo26-tp2/ssd",
+        "FABRIC_IFACE": "{cx7.netdev}",
+        "IB_HCA": "rocep1s0f0,roceP2p1s0f0",
+        "NFS_SERVER_IP_1": "{head.cx7_ip}",
+        "NFS_CLIENTS": "{worker.cx7_ip},192.168.100.0/24",
+        "PORT": "8000",
+        "MEM_FRACTION_STATIC": "0.90",
+        "HEAD_MEM_FRACTION_STATIC": "0.90"
+      }
+    },
+    "bench": {
+      "prefill_tokens": [
+        2048,
+        8192,
+        32768
+      ]
+    }
+  },
+  "smoke": {
+    "pass": true,
+    "answer": "323"
+  },
+  "decode": {
+    "prompt_tokens": 31,
+    "completion_tokens": 512,
+    "ttft_s": 0.423,
+    "decode_tok_s": 27.09
+  },
+  "prefill": [
+    {
+      "target_tokens": 2048,
+      "prompt_tokens": 1781,
+      "ttft_s": 1.003,
+      "prefill_tok_s": 1775.7
+    },
+    {
+      "target_tokens": 8192,
+      "prompt_tokens": 6968,
+      "ttft_s": 3.066,
+      "prefill_tok_s": 2272.7
+    },
+    {
+      "target_tokens": 32768,
+      "prompt_tokens": 27753,
+      "ttft_s": 12.612,
+      "prefill_tok_s": 2200.5
+    }
+  ],
+  "parallel": [
+    {
+      "streams": 1,
+      "aggregate_tok_s": 24.34,
+      "mean_ttft_s": 0.384
+    },
+    {
+      "streams": 2,
+      "aggregate_tok_s": 36.94,
+      "mean_ttft_s": 1.547
+    },
+    {
+      "streams": 4,
+      "aggregate_tok_s": 55.87,
+      "mean_ttft_s": 1.512
+    }
+  ],
+  "decode_code": {
+    "prompt_tokens": 61,
+    "completion_tokens": 512,
+    "ttft_s": 0.512,
+    "decode_tok_s": 32.61
+  },
+  "parallel_code": [
+    {
+      "streams": 4,
+      "aggregate_tok_s": 76.58,
+      "mean_ttft_s": 0.777
+    }
+  ]
+}
