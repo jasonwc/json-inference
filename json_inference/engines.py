@@ -395,6 +395,15 @@ done
 docker rm -f {name} >/dev/null""",
             check=False,
         )
+    # Stop the kernel nfsd those containers started. Left running, the next
+    # recipe's rpc.nfsd finds threads already up, never registers NFS with
+    # its rpcbind, and the recipe's readiness check (rpcinfo nfs 4) fails.
+    remote.run(
+        cluster,
+        cluster.head,
+        "[ -e /proc/fs/nfsd/threads ] && sudo sh -c 'echo 0 > /proc/fs/nfsd/threads' 2>/dev/null; true",
+        check=False,
+    )
     remote.log(None, "nothing running")
 
 
