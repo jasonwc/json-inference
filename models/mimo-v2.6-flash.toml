@@ -30,6 +30,11 @@ IB_HCA = "rocep1s0f0,roceP2p1s0f0"
 NFS_SERVER_IP_1 = "{head.cx7_ip}"
 NFS_CLIENTS = "{worker.cx7_ip},192.168.100.0/24"
 PORT = "8000"
+# The recipe's 0.93 leaves ~5.5 GB free on its author's Sparks; ours ended
+# under the 4 GiB memory-guard floor on the worker and it killed SGLang.
+# 0.90 buys ~3.6 GB of slack; the KV pool is still over 2M tokens.
+MEM_FRACTION_STATIC = "0.90"
+HEAD_MEM_FRACTION_STATIC = "0.90"
 
 [bench]
 prefill_tokens = [2048, 8192, 32768]
