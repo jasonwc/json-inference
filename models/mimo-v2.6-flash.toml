@@ -12,7 +12,9 @@ repo = "https://github.com/MiaAI-Lab/MiMo-V2.6-Flash-2x-DGX-Sparks"
 rev = "201be3e743d215291feee09fe470822ec453c63d"
 pull = "./start.sh download && ./start.sh build"
 start = "./start.sh serve"
-stop = "./start.sh stop"
+# Each recipe runs its own NFS server on the head, all on port 2049, and
+# its stop leaves it running; remove it so the next model's server can bind.
+stop = "./start.sh stop; docker rm -f mimo26-nfs >/dev/null 2>&1 || true"
 logs = "./start.sh logs"
 
 [launcher.env]
