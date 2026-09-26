@@ -16,9 +16,9 @@ image_key = "DSPARK_VLLM_IMAGE"
 worker_checkout = true
 pull = "./prepare-dspark-model-cache.sh --official --yes"
 start = "./start-deepseek-v4-flash-dspark.sh"
-# Each recipe runs its own NFS server on the head, all on port 2049, and
-# its stop leaves it running; remove it so the next model's server can bind.
-stop = "./stop-deepseek-v4-flash-dspark.sh --nfs"
+stop = "./stop-deepseek-v4-flash-dspark.sh"
+# The recipe's own NFS server on the head; `down` removes it (see engines.py).
+nfs_container = "dspark-nfs"
 logs = "./logs-deepseek-v4-flash-dspark.sh"
 
 [launcher.env]

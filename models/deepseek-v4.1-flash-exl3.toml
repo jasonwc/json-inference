@@ -14,9 +14,9 @@ rev = "6f7d1590ad49a2b8995188e45d7b9db31e677452"
 # otherwise spark-2 reads Engram rows over NFS at runtime.
 pull = "./download.sh && ./start.sh pack"
 start = "./start.sh"
-# Each recipe runs its own NFS server on the head, all on port 2049, and
-# its stop leaves it running; remove it so the next model's server can bind.
-stop = "./start.sh stop; docker rm -f dsv41-exl3-nfs >/dev/null 2>&1 || true"
+stop = "./start.sh stop"
+# The recipe's own NFS server on the head; `down` removes it (see engines.py).
+nfs_container = "dsv41-exl3-nfs"
 logs = "./start.sh logs"
 
 # Appended to the recipe's .env.example; later keys win. Nodes talk over the

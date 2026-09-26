@@ -11,9 +11,9 @@ env_template = ".env.sample"
 # Downloads to the head, then rsyncs the worker's copy (~126 GiB each).
 pull = "./start.sh --no-launch"
 start = "./start.sh --launch"
-# Each recipe runs its own NFS server on the head, all on port 2049, and
-# its stop leaves it running; remove it so the next model's server can bind.
-stop = "./stop.sh; docker rm -f vllm-fn-nfs >/dev/null 2>&1 || true"
+stop = "./stop.sh"
+# The recipe's own NFS server on the head; `down` removes it (see engines.py).
+nfs_container = "vllm-fn-nfs"
 
 [launcher.env]
 HEAD_IP = "{head.cx7_ip}"

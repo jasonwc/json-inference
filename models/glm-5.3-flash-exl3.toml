@@ -10,9 +10,9 @@ repo = "https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks"
 rev = "75a0e9e90b737729e1536a52ab4ea3c5085cf83b"
 pull = "./download.sh"
 start = "./start.sh"
-# Each recipe runs its own NFS server on the head, all on port 2049, and
-# its stop leaves it running; remove it so the next model's server can bind.
-stop = "./start.sh stop; docker rm -f glm53-nfs >/dev/null 2>&1 || true"
+stop = "./start.sh stop"
+# The recipe's own NFS server on the head; `down` removes it (see engines.py).
+nfs_container = "glm53-nfs"
 logs = "./start.sh logs"
 
 [launcher.env]

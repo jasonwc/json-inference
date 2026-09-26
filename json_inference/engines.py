@@ -369,6 +369,22 @@ def down(cluster: Cluster) -> None:
     for model in list_models():
         if model.engine == "launcher":
             launcher_stop(cluster, model)
+    # Each recipe runs its own NFS server container on the head (host network,
+    # port 2049) and its stop leaves it up, so the next recipe's server can't
+    # bind. `docker rm -f` alone can hang up on the container's rpc.mountd,
+    # so kill that first if the removal fails.
+    for name in {m.launcher["nfs_container"] for m in list_models() if "nfs_container" in m.launcher}:
+        remote.run(
+            cluster,
+            cluster.head,
+            f"""docker inspect {name} >/dev/null 2>&1 || exit 0
+docker rm -f {name} >/dev/null 2>&1 && exit 0
+pid=$(docker inspect -f '{{{{.State.Pid}}}}' {name})
+[ "$pid" -gt 0 ] && sudo kill -9 "$pid"
+sleep 2
+docker rm -f {name} >/dev/null""",
+            check=False,
+        )
     remote.log(None, "nothing running")
 
 
