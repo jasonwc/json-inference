@@ -366,9 +366,13 @@ def down(cluster: Cluster) -> None:
             node,
             f'ids=$(docker ps -aq --filter label={LABEL}); [ -z "$ids" ] || docker rm -f $ids >/dev/null',
         )
-    for model in list_models():
-        if model.engine == "launcher":
-            launcher_stop(cluster, model)
+    # Stop whichever recipe is actually serving first: some stops (MiMo's)
+    # wait for the GPU to be released, which never happens while another
+    # recipe still holds it.
+    serving = set(served_models(cluster, 8000) or [])
+    launchers = [m for m in list_models() if m.engine == "launcher"]
+    for model in sorted(launchers, key=lambda m: m.served_name not in serving):
+        launcher_stop(cluster, model)
     # Each recipe runs its own NFS server container on the head (host network,
     # port 2049) and its stop leaves it up, so the next recipe's server can't
     # bind. The container starts the kernel's nfsd threads, which belong to its
