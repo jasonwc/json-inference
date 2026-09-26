@@ -1,0 +1,84 @@
+{
+  "model": "qwen3.8-flash-next-nvfp4",
+  "timestamp": "2026-09-26T04:57:24Z",
+  "json_inference_rev": "9130c30",
+  "endpoint": "http://json-spark-1.json.lab:8000/v1",
+  "definition": {
+    "description": "NVIDIA Qwen3.8-Flash-Next NVFP4 (~133 GB), vLLM TP=2 + expert parallel + MTP via MiaAI-Lab's two-Spark recipe",
+    "engine": "launcher",
+    "nodes": 2,
+    "port": 8000,
+    "served_name": "qwen3.8-flash-next",
+    "launcher": {
+      "repo": "https://github.com/MiaAI-Lab/Qwen3.8-Flash-Next-Dual-DGX-Sparks",
+      "rev": "d2f54b78c0d2f9d74ac61aa56200e3c40fac3f22",
+      "env_template": ".env.sample",
+      "pull": "./start.sh --no-launch",
+      "start": "./start.sh --launch",
+      "stop": "./stop.sh",
+      "env": {
+        "HEAD_IP": "{head.cx7_ip}",
+        "WORKER_IP": "{worker.cx7_ip}",
+        "WORKER_USER": "{user}",
+        "PORT": "8000",
+        "IFACE": "{cx7.netdev}",
+        "IB_HCA": "={cx7.ibdev}",
+        "IB_GID_INDEX": "{cx7.gid_index}"
+      }
+    },
+    "bench": {
+      "prefill_tokens": [
+        2048,
+        8192,
+        32768
+      ]
+    }
+  },
+  "smoke": {
+    "pass": true,
+    "answer": "323"
+  },
+  "decode": {
+    "prompt_tokens": 76,
+    "completion_tokens": 512,
+    "ttft_s": 1.247,
+    "decode_tok_s": 45.42
+  },
+  "prefill": [
+    {
+      "target_tokens": 2048,
+      "prompt_tokens": 1826,
+      "ttft_s": 1.658,
+      "prefill_tok_s": 1101.3
+    },
+    {
+      "target_tokens": 8192,
+      "prompt_tokens": 7040,
+      "ttft_s": 2.566,
+      "prefill_tok_s": 2743.6
+    },
+    {
+      "target_tokens": 32768,
+      "prompt_tokens": 27862,
+      "ttft_s": 10.226,
+      "prefill_tok_s": 2724.6
+    }
+  ],
+  "parallel": [
+    {
+      "streams": 1,
+      "aggregate_tok_s": 46.56,
+      "mean_ttft_s": 0.208
+    },
+    {
+      "streams": 2,
+      "aggregate_tok_s": 56.92,
+      "mean_ttft_s": 0.32
+    },
+    {
+      "streams": 4,
+      "aggregate_tok_s": 113.43,
+      "mean_ttft_s": 0.408
+    }
+  ]
+}
