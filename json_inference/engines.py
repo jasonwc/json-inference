@@ -371,17 +371,19 @@ def down(cluster: Cluster) -> None:
             launcher_stop(cluster, model)
     # Each recipe runs its own NFS server container on the head (host network,
     # port 2049) and its stop leaves it up, so the next recipe's server can't
-    # bind. `docker rm -f` alone can hang up on the container's rpc.mountd,
-    # so kill that first if the removal fails.
+    # bind. The container starts the kernel's nfsd threads, which belong to its
+    # PID namespace, so `docker rm -f` hangs with init stuck reaping them until
+    # nfsd is shut down; do that (the write reports an I/O error but works).
     for name in {m.launcher["nfs_container"] for m in list_models() if "nfs_container" in m.launcher}:
         remote.run(
             cluster,
             cluster.head,
             f"""docker inspect {name} >/dev/null 2>&1 || exit 0
 docker rm -f {name} >/dev/null 2>&1 && exit 0
+mountpoint -q /proc/fs/nfsd || sudo mount -t nfsd nfsd /proc/fs/nfsd
+sudo sh -c 'echo 0 > /proc/fs/nfsd/threads' 2>/dev/null || true
 pid=$(docker inspect -f '{{{{.State.Pid}}}}' {name})
-[ "$pid" -gt 0 ] && sudo kill -9 "$pid"
-# The kernel nfsd can take a while to let the container's init go.
+[ "$pid" -gt 0 ] && sudo kill -9 "$pid" 2>/dev/null
 for _ in $(seq 60); do
   [ "$(docker inspect -f '{{{{.State.Running}}}}' {name})" = false ] && break
   sleep 1
