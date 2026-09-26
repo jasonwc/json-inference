@@ -1,0 +1,46 @@
+description = "MiMo-V2.6-Flash with the separate DFlash drafter instead of EAGLE MTP: the recipe's code-tuned mode (reported ~70 tok/s on code, slower on prose)"
+# The recipe builds its own image FROM a pinned SGLang nightly and ships it to
+# the worker (`build`); weights live only on the head and the worker reads
+# them over NFS on the QSFP link.
+engine = "launcher"
+nodes = 2
+port = 8000
+served_name = "MiMo-v2.6-Flash"
+
+[launcher]
+repo = "https://github.com/MiaAI-Lab/MiMo-V2.6-Flash-2x-DGX-Sparks"
+rev = "201be3e743d215291feee09fe470822ec453c63d"
+pull = "./start.sh download && ./start.sh build"
+start = "./start.sh serve"
+stop = "./start.sh stop"
+# The recipe's own NFS server on the head; `down` removes it (see engines.py).
+nfs_container = "mimo26-nfs"
+logs = "./start.sh logs"
+
+[launcher.env]
+HEAD_IP = "{head.cx7_ip}"
+WORKER_IPS = "{worker.cx7_ip}"
+WORKER_HOSTS = "{worker.cx7_ip}"
+WORKER_USER = "{user}"
+SSH_IDENTITY = "$HOME/.ssh/id_ed25519"
+WORKER_DIR = "/home/{user}/mimo26-tp2"
+WORKER_SSD_DIR = "/home/{user}/mimo26-tp2/ssd"
+FABRIC_IFACE = "{cx7.netdev}"
+IB_HCA = "rocep1s0f0,roceP2p1s0f0"
+NFS_SERVER_IP_1 = "{head.cx7_ip}"
+NFS_CLIENTS = "{worker.cx7_ip},192.168.100.0/24"
+PORT = "8000"
+# The recipe's 0.93 leaves ~5.5 GB free on its author's Sparks; ours ended
+# under the 4 GiB memory-guard floor on the worker and it killed SGLang.
+# 0.90 buys ~3.6 GB of slack; the KV pool is still over 2M tokens.
+MEM_FRACTION_STATIC = "0.90"
+HEAD_MEM_FRACTION_STATIC = "0.90"
+# DFlash settings from the recipe README; its drafter needs its own pool, so
+# the KV ceiling is lower than EAGLE's.
+SPEC_ALGO = "DFLASH"
+SPEC_DRAFT_TOKENS = "8"
+CUDA_GRAPH_MAX_BS_DECODE = "8"
+MAX_TOTAL_TOKENS = "2299968"
+
+[bench]
+prefill_tokens = [2048, 8192, 32768]

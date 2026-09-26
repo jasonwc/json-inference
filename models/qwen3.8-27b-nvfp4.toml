@@ -13,7 +13,7 @@ args = [
   "--max-num-seqs", "8",
   "--async-scheduling",
   "--enable-prefix-caching",
-  "--speculative-config", '{"method":"mtp","num_speculative_tokens":5}',
+  "--speculative-config", '{"method":"mtp","num_speculative_tokens":3}',
   "--reasoning-parser", "qwen3",
   # Tool calls for agent harnesses.
   "--enable-auto-tool-choice",

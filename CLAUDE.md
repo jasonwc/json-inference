@@ -23,7 +23,7 @@ between them). The Sparks' OS, network and monitoring belong to json-lab
 
 ## Key Commands
 
-- `inference list | pull <m> | up <m> | bench <m> | results | status | logs <m> [-f] | cancel <m> | down`
+- `inference list | pull <m> | up <m> | bench <m> | results | status | logs <m> [-f] | cancel <m> | sweep [m...] | down`
 - `python3 -m py_compile json_inference/*.py`: quick syntax check
 - `nix flake check`: validate flake
 

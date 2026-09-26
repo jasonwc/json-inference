@@ -20,6 +20,7 @@ inference bench gpt-oss-120b        # smoke + speed benchmark, saved to results/
 inference results                   # latest result per model, side by side
 inference status | logs <model> [-f] | down
 inference cancel <model>            # stop its background downloads/boots on the Sparks
+inference sweep [model...]          # up + bench each in turn (default all), skipping failures
 ```
 
 The CLI runs on a LAN machine and drives the Sparks over SSH; long steps run
