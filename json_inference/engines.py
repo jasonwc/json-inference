@@ -213,6 +213,7 @@ def launcher_prepare(cluster: Cluster, model: Model) -> None:
     """Pinned checkout on the head, plus the rendered .env."""
     lc = model.launcher
     env_lines = "\n".join(f"{k}={render(str(v), cluster)}" for k, v in lc.get("env", {}).items())
+    template = shlex.quote(lc.get("env_template", ".env.example"))
     remote.run(
         cluster,
         cluster.head,
@@ -220,7 +221,7 @@ def launcher_prepare(cluster: Cluster, model: Model) -> None:
 [ -d "$dir/.git" ] || git clone -q {shlex.quote(lc['repo'])} "$dir"
 git -C "$dir" fetch -q origin
 git -C "$dir" -c advice.detachedHead=false checkout -q {shlex.quote(lc['rev'])}
-{{ cat "$dir/.env.example"; printf '\\n# --- json-inference overrides (models/{model.name}.toml) ---\\n'; cat <<'ENV'
+{{ cat "$dir/"{template}; printf '\\n# --- json-inference overrides (models/{model.name}.toml) ---\\n'; cat <<'ENV'
 {env_lines}
 ENV
 }} > "$dir/.env"
@@ -309,9 +310,12 @@ def wait_ready(cluster: Cluster, model: Model) -> None:
 def logs(cluster: Cluster, model: Model, follow_logs: bool) -> None:
     if model.engine == "vllm":
         vllm_logs(cluster, model, follow_logs)
+    elif "logs" in model.launcher:
+        remote.run(cluster, cluster.head, f"cd {_checkout(model)} && {model.launcher['logs']}", check=False)
     else:
-        cmd = model.launcher["logs"]
-        remote.run(cluster, cluster.head, f"cd {_checkout(model)} && {cmd}", check=False)
+        # Recipes without a logs command: the output of their start script.
+        f = "-f " if follow_logs else ""
+        remote.run(cluster, cluster.head, f"tail {f}-n 200 {STATE_DIR}/logs/start-{model.name}.log", check=False)
 
 
 def status(cluster: Cluster) -> None:

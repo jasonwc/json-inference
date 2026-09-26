@@ -12,7 +12,6 @@ rev = "6f7d1590ad49a2b8995188e45d7b9db31e677452"
 pull = "./download.sh"
 start = "./start.sh"
 stop = "./start.sh stop"
-status = "./start.sh status"
 logs = "./start.sh logs"
 
 # Appended to the recipe's .env.example; later keys win. Nodes talk over the
