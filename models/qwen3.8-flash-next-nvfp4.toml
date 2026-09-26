@@ -1,7 +1,7 @@
 description = "NVIDIA Qwen3.8-Flash-Next NVFP4 (~133 GB), vLLM TP=2 + expert parallel + MTP via MiaAI-Lab's two-Spark recipe"
 engine = "launcher"
 nodes = 2
-port = 8888
+port = 8000
 served_name = "qwen3.8-flash-next"
 
 [launcher]
@@ -17,6 +17,8 @@ stop = "./stop.sh"
 HEAD_IP = "{head.cx7_ip}"
 WORKER_IP = "{worker.cx7_ip}"
 WORKER_USER = "{user}"
+# Every model serves on 8000, so inference.json.lab (json-lab) has one backend.
+PORT = "8000"
 IFACE = "{cx7.netdev}"
 IB_HCA = "={cx7.ibdev}"
 IB_GID_INDEX = "{cx7.gid_index}"

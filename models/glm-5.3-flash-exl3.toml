@@ -2,7 +2,7 @@ description = "GLM-5.3-Flash, EXL3 4 bpw (~164 GiB + ~2.3 GiB DFlash2 drafter), 
 # Same launcher family as deepseek-v4.1-flash-exl3 (start.sh/download.sh/.env).
 engine = "launcher"
 nodes = 2
-port = 8888
+port = 8000
 served_name = "GLM-5.3-Flash-EXL3"
 
 [launcher]
@@ -17,6 +17,8 @@ logs = "./start.sh logs"
 HEAD_IP = "{head.cx7_ip}"
 WORKER_IP = "{worker.cx7_ip}"
 WORKER_USER = "{user}"
+# Every model serves on 8000, so inference.json.lab (json-lab) has one backend.
+PORT = "8000"
 HEAD_CX7_IF = "{cx7.netdev}"
 WORKER_CX7_IF = "{cx7.netdev}"
 HEAD_CX7_IB = "{cx7.ibdev}"
