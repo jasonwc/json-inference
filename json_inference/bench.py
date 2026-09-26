@@ -13,7 +13,6 @@ tokens, since those cost the same time to generate.
 
 import json
 import random
-import subprocess
 import threading
 import time
 import urllib.error
@@ -21,6 +20,7 @@ import urllib.request
 from datetime import datetime, timezone
 
 from .config import REPO_ROOT, RESULTS_DIR, Model
+from .engines import git_rev
 
 DECODE_PROMPT = "Write a detailed, 600-word short story about a lighthouse keeper who finds a message in a bottle."
 WORDS = (
@@ -124,18 +124,12 @@ def _strip(r: dict) -> dict:
     return {k: v for k, v in r.items() if k not in ("start", "end")}
 
 
-def _git_rev() -> str:
-    rev = subprocess.run(["git", "-C", str(REPO_ROOT), "rev-parse", "--short", "HEAD"], capture_output=True, text=True)
-    dirty = subprocess.run(["git", "-C", str(REPO_ROOT), "status", "--porcelain"], capture_output=True, text=True)
-    return rev.stdout.strip() + ("-dirty" if dirty.stdout.strip() else "")
-
-
 def run(base: str, model: Model) -> dict:
     name = model.served_name
     report: dict = {
         "model": model.name,
         "timestamp": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
-        "json_inference_rev": _git_rev(),
+        "json_inference_rev": git_rev(),
         "endpoint": base,
         "definition": model.raw,
     }
@@ -188,10 +182,12 @@ def summary() -> None:
     """Latest result per model, side by side."""
     rows = []
     for model_dir in sorted(RESULTS_DIR.glob("*/")):
-        latest = sorted(model_dir.glob("*.json"))
+        latest = sorted(p for p in model_dir.glob("*.json") if not p.name.startswith("up-"))
         if not latest:
             continue
         r = json.loads(latest[-1].read_text())
+        ups = sorted(model_dir.glob("up-*.json"))
+        start = json.loads(ups[-1].read_text())["start_s"] if ups else "-"
         prefill = {p["target_tokens"]: p.get("prefill_tok_s", "err") for p in r["prefill"]}
         agg = {p["streams"]: p.get("aggregate_tok_s", "err") for p in r["parallel"]}
         rows.append(
@@ -203,9 +199,10 @@ def summary() -> None:
                 r["decode"]["decode_tok_s"],
                 " / ".join(f"{k // 1024}k:{v}" for k, v in sorted(prefill.items())),
                 agg.get(4, "-"),
+                start,
             ]
         )
-    header = ["model", "date", "smoke", "ttft s", "decode tok/s", "prefill tok/s", "x4 agg tok/s"]
+    header = ["model", "date", "smoke", "ttft s", "decode tok/s", "prefill tok/s", "x4 agg tok/s", "start s"]
     widths = [max(len(str(x)) for x in col) for col in zip(header, *rows)]
     for row in [header, *rows]:
         print("  ".join(str(x).ljust(w) for x, w in zip(row, widths)))

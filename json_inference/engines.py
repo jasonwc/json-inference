@@ -14,15 +14,18 @@ memory, so `up` always stops whatever else is running first.
 
 import json
 import shlex
+import subprocess
 import time
 import urllib.request
+from datetime import datetime, timezone
 
 from . import remote
-from .config import Cluster, Model, Node, list_models, render
+from .config import REPO_ROOT, RESULTS_DIR, Cluster, Model, Node, list_models, render
 
 LABEL = "json-inference.model"
 STATE_DIR = "~/json-inference"
 HF_CACHE = "$HOME/.cache/huggingface"
+COMPILE_CACHE = "$HOME/.cache/json-inference-compile"
 READY_TIMEOUT_S = 45 * 60
 
 
@@ -110,6 +113,15 @@ def _docker_base(model: Model, name: str) -> list[str]:
         "--ulimit", "stack=67108864",
         "--shm-size", "16g",
         "-v", f"{HF_CACHE}:/root/.cache/huggingface",
+        # Compile caches (vLLM's torch.compile, Triton, FlashInfer JIT) survive
+        # the container, so only a model's first `up` pays for kernel builds.
+        # Entries are keyed by vLLM version and model config, so images and
+        # models share the directory safely.
+        "-v", f"{COMPILE_CACHE}:/root/.cache/compile",
+        "-v", f"{COMPILE_CACHE}/flashinfer:/root/.cache/flashinfer",
+        "-e", "VLLM_CACHE_ROOT=/root/.cache/compile/vllm",
+        "-e", "TRITON_CACHE_DIR=/root/.cache/compile/triton",
+        "-e", "TORCHINDUCTOR_CACHE_DIR=/root/.cache/compile/inductor",
         # Weights are staged by `pull`; never download at serve time.
         "-e", "HF_HUB_OFFLINE=1",
     ]  # fmt: skip
@@ -268,7 +280,13 @@ ssh-keygen -F {cluster.worker.cx7_ip} >/dev/null 2>&1 \\
 
 
 def launcher_run(cluster: Cluster, model: Model, step: str, wait: bool = True) -> None:
-    detached(cluster, cluster.head, f"{step}-{model.name}", f"cd {_checkout(model)}\n{model.launcher[step]}", wait)
+    script = f"cd {_checkout(model)}\n{model.launcher[step]}"
+    if step == "pull":
+        # Some recipes' download steps fetch only weights and pull their image
+        # at launch; pull it here so `up` doesn't wait on it. The recipes use
+        # an IMAGE key in their .env.
+        script += '\nIMAGE=$(set -a; . ./.env; echo "${IMAGE:-}")\n[ -z "$IMAGE" ] || docker pull -q "$IMAGE"'
+    detached(cluster, cluster.head, f"{step}-{model.name}", script, wait)
 
 
 def launcher_stop(cluster: Cluster, model: Model) -> None:
@@ -281,6 +299,12 @@ def launcher_stop(cluster: Cluster, model: Model) -> None:
 
 
 # --- engine-independent ------------------------------------------------------
+
+
+def git_rev() -> str:
+    rev = subprocess.run(["git", "-C", str(REPO_ROOT), "rev-parse", "--short", "HEAD"], capture_output=True, text=True)
+    dirty = subprocess.run(["git", "-C", str(REPO_ROOT), "status", "--porcelain"], capture_output=True, text=True)
+    return rev.stdout.strip() + ("-dirty" if dirty.stdout.strip() else "")
 
 
 def endpoint(cluster: Cluster, model: Model) -> str:
@@ -317,13 +341,29 @@ def down(cluster: Cluster) -> None:
 
 
 def up(cluster: Cluster, model: Model) -> None:
+    t0 = time.time()
     down(cluster)
+    t1 = time.time()
     if model.engine == "vllm":
         vllm_up(cluster, model)
     else:
         launcher_prepare(cluster, model)
         launcher_run(cluster, model, "start")
     wait_ready(cluster, model)
+    t2 = time.time()
+    # How long a switch takes, so `inference results` can show it next to
+    # speed. start_s runs from launch to the API answering.
+    record = {
+        "model": model.name,
+        "timestamp": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "json_inference_rev": git_rev(),
+        "stop_s": round(t1 - t0),
+        "start_s": round(t2 - t1),
+    }
+    out = RESULTS_DIR / model.name / f"up-{record['timestamp'].replace(':', '')}.json"
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(json.dumps(record, indent=2) + "\n")
+    remote.log(None, f"stop {record['stop_s']} s, start {record['start_s']} s (saved {out.relative_to(REPO_ROOT)})")
 
 
 def wait_ready(cluster: Cluster, model: Model) -> None:

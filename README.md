@@ -68,7 +68,9 @@ runs:
   prompts so the prefix cache doesn't help
 - **parallel**: aggregate tokens/s at 1, 2 and 4 concurrent streams
 
-Each run is saved as `results/<model>/<timestamp>.json`, together with the
+`inference up` also records how long the switch took (`results/<model>/up-<timestamp>.json`,
+shown as "start s" in `inference results`). Each benchmark run is saved as
+`results/<model>/<timestamp>.json`, together with the
 definition and repo revision it ran with, and committed so models can be
 compared over time.
 
