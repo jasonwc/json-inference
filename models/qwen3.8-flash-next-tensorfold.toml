@@ -1,0 +1,35 @@
+description = "NVIDIA Qwen3.8-Flash-Next NVFP4 (~124 GiB) on TensorFold's Zig engine, TP=2 + MTP drafts via MiaAI-Lab's two-Spark recipe"
+# Engine: ashhart/TensorFold (branch zig-flashnext) at the commit the recipe pins
+# (TF_REF db28187) with the recipe's 9 patches, built on nvcr.io/nvidia/pytorch:26.07
+# into tensorfold-qwen38fn:zig-db28187 (~25 GB, copied to the worker). MiaAI-Lab's
+# prebuilt ghcr image is only used when its patch hash matches; at this rev it
+# doesn't, so `pull` builds on the head (approved 2026-10-15: TensorFold engine +
+# Qwen3.8-Flash-Next weights only; not the INT4-AutoRound checkpoint). Weights: the
+# same nvidia/Qwen3.8-Flash-Next-NVFP4 snapshot (fc694b54) as qwen3.8-flash-next-nvfp4,
+# so both share one HF cache. With another model serving, MemAvailable sits just under
+# the recipe's 10 GiB floor; `pull` was run once as MEM_CHECK=0 ./scripts/prepare.sh.
+engine = "launcher"
+nodes = 2
+port = 8000
+served_name = "qwen3.8-flash-next-tensorfold"
+
+[launcher]
+repo = "https://github.com/MiaAI-Lab/Qwen3.8-Flash-Dual-DGX-Sparks-TensorFold"
+rev = "6730319ed948cc88b525bbbdc9d309451a863834"
+# The recipe ships no env template; its scripts read KEY=value lines from ./.env.
+env_template = ""
+# Pulls the pinned image on both Sparks and copies the checkpoint to the worker
+# (already there when qwen3.8-flash-next-nvfp4 was pulled).
+pull = "./scripts/prepare.sh"
+start = "./start.sh"
+stop = "./stop.sh"
+
+[launcher.env]
+WORKER = "{user}@{worker.cx7_ip}"
+QUANT = "nvfp4"
+SERVED_NAME = "qwen3.8-flash-next-tensorfold"
+# Every model serves on 8000, so inference.json.lab (json-lab) has one backend.
+PORT = "8000"
+
+[bench]
+prefill_tokens = [2048, 8192, 32768]

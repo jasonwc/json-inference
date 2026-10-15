@@ -263,7 +263,9 @@ def launcher_prepare(cluster: Cluster, model: Model) -> None:
     same directory mirrored there at the same path."""
     lc = model.launcher
     env_lines = "\n".join(f"{k}={render(str(v), cluster)}" for k, v in lc.get("env", {}).items())
-    template = shlex.quote(lc.get("env_template", ".env.example"))
+    # env_template = "" for recipes that ship no template: the env file is just the overrides.
+    template = lc.get("env_template", ".env.example")
+    copy_template = f'cat "$dir/"{shlex.quote(template)}; ' if template else ""
     env_file = shlex.quote(lc.get("env_file", ".env"))
     worker = f"{cluster.user}@{cluster.worker.cx7_ip}"
     mirror = (
@@ -279,7 +281,7 @@ def launcher_prepare(cluster: Cluster, model: Model) -> None:
 [ -d "$dir/.git" ] || git clone -q {shlex.quote(lc['repo'])} "$dir"
 git -C "$dir" fetch -q origin
 git -C "$dir" -c advice.detachedHead=false checkout -q {shlex.quote(lc['rev'])}
-{{ cat "$dir/"{template}; printf '\\n# --- json-inference overrides (models/{model.name}.toml) ---\\n'; cat <<'ENV'
+{{ {copy_template}printf '\\n# --- json-inference overrides (models/{model.name}.toml) ---\\n'; cat <<'ENV'
 {env_lines}
 ENV
 }} > "$dir/"{env_file}
