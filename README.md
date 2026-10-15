@@ -72,7 +72,7 @@ prefill_tokens = [2048, 8192, 32768]
   checked out on the head under `~/json-inference/recipes/<name>`.
   `[launcher.env]` is appended to the recipe's `.env.example`, with
   `{head.cx7_ip}`-style placeholders filled from `cluster.toml`. The two-Spark
-  DeepSeek, GLM, MiMo and Qwen definitions wrap
+  DeepSeek, MiMo and Qwen definitions wrap
   [MiaAI-Lab](https://github.com/MiaAI-Lab)'s recipes this way.
 
 ## Benchmarks
