@@ -6,7 +6,7 @@ served_name = "qwen3.8-flash-next"
 
 [launcher]
 repo = "https://github.com/MiaAI-Lab/Qwen3.8-Flash-Next-Dual-DGX-Sparks"
-rev = "d2f54b78c0d2f9d74ac61aa56200e3c40fac3f22"
+rev = "cd839d0b62f6c737178a0c2037733420e0524ebf"
 env_template = ".env.sample"
 # Downloads to the head, then rsyncs the worker's copy (~126 GiB each).
 pull = "./start.sh --no-launch"
@@ -24,6 +24,8 @@ PORT = "8000"
 IFACE = "{cx7.netdev}"
 IB_HCA = "={cx7.ibdev}"
 IB_GID_INDEX = "{cx7.gid_index}"
+# Upstream's default since 2026-09-26: 0.835 left <1 GiB available per node under load.
+GPU_MEMORY_UTILIZATION = "0.80"
 
 [bench]
 prefill_tokens = [2048, 8192, 32768]
