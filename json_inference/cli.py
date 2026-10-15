@@ -29,7 +29,17 @@ def main() -> None:
     sub.add_parser("down", help="stop every model on both Sparks")
     sub.add_parser("status", help="containers, free memory and what's serving")
     sub.add_parser("results", help="latest benchmark per model, side by side")
+    ui = sub.add_parser("serve-ui", help="web page to swap the served model (see json_inference/web.py)")
+    ui.add_argument("--host", default="127.0.0.1")
+    ui.add_argument("--port", type=int, default=8091)
+    ui.add_argument("--dry-run", action="store_true", help="simulate swaps instead of running the CLI")
     args = p.parse_args()
+
+    if args.cmd == "serve-ui":
+        from . import web
+
+        web.serve(args.host, args.port, args.dry_run)
+        return
 
     if args.cmd == "list":
         for m in list_models():

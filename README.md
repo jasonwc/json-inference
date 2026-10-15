@@ -20,6 +20,7 @@ inference bench gpt-oss-120b        # smoke + speed benchmark, saved to results/
 inference results                   # latest result per model, side by side
 inference status | logs <model> [-f] | down
 inference cancel <model>            # stop its background downloads/boots on the Sparks
+inference serve-ui [--dry-run]      # the model-swap web page (see below)
 inference sweep [model...]          # up + bench each in turn (default all), skipping failures
 ```
 
@@ -94,6 +95,25 @@ shown as "start s" in `inference results`). Each benchmark run is saved as
 definition and repo revision it ran with, and committed so models can be
 compared over time. A new model's definition and its first results are
 committed together.
+
+## Swapping from a browser
+
+`inference serve-ui` serves a small page (json_inference/web.py) at
+`http://models.json.lab` (json-lab ingress, LAN + WireGuard only) from json-mini,
+where it runs as the `inference-ui` systemd user service (json-workstation
+`hosts/json-mini/inference-ui.nix`). It shows what's serving and vLLM's live
+running/waiting requests, every definition with its latest benchmark, and
+offers Swap (`inference up`) and Stop (`inference down`) with a confirmation,
+since Byrdpip, Osty, voice and Paper lose the model while the Sparks switch.
+Definitions whose id looks like an OpenAI/Anthropic model (`gpt-*`, `o1`/`o3`,
+`claude*`) are marked "not for Paper". One operation at a time; its log and
+result live in `~/.local/state/json-inference/ui/`. Pull, bench and sweep stay
+on the CLI.
+
+Login: HTTP basic auth from `INFERENCE_UI_USER`/`INFERENCE_UI_PASSWORD` (the
+service reads `~/.config/json-inference/ui-auth`; the password is also in
+json-lab `.envrc` as `INFERENCE_UI_PASSWORD`). Try the page without touching the
+Sparks: `INFERENCE_UI_USER=me INFERENCE_UI_PASSWORD=... inference serve-ui --dry-run`.
 
 ## Clients
 

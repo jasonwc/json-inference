@@ -18,13 +18,14 @@ between them). The Sparks' OS, network and monitoring belong to json-lab
   - `config.py`: loading definitions
   - `engines.py`: `vllm` and `launcher` engines, detached remote jobs
   - `bench.py`: benchmark and results table
+  - `web.py`: `inference serve-ui`, the model-swap page at models.json.lab (runs on json-mini)
 - `bin/inference`: runs the CLI from the checkout (the devshell puts `bin/` on PATH)
 - `results/<model>/<timestamp>.json`: committed benchmark runs
 - `docs/`: write-ups of benchmark sweeps and findings
 
 ## Key Commands
 
-- `inference list | pull <m> | up <m> | bench <m> | results | status | logs <m> [-f] | cancel <m> | sweep [m...] | down`
+- `inference list | pull <m> | up <m> | bench <m> | results | status | logs <m> [-f] | cancel <m> | sweep [m...] | down | serve-ui [--dry-run]`
 - `python3 -m py_compile json_inference/*.py`: quick syntax check
 - `nix flake check`: validate flake
 
@@ -42,4 +43,5 @@ between them). The Sparks' OS, network and monitoring belong to json-lab
   commit, never vendored.
 - New models: add a definition, `pull`, `up`, `bench`, then commit the
   definition and its results together.
+- The swap page never pulls, benches or sweeps; test it with `--dry-run`, never by swapping the live model.
 - Devshell activated via direnv (`use flake`).
