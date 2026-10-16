@@ -1,0 +1,7 @@
+{
+  "model": "qwen3.8-flash-next-nvfp4",
+  "timestamp": "2026-10-16T20:07:30Z",
+  "json_inference_rev": "863d0eb-dirty",
+  "stop_s": 21,
+  "start_s": 758
+}

@@ -1,0 +1,7 @@
+{
+  "model": "gpt-oss-120b-tp2",
+  "timestamp": "2026-10-16T20:28:52Z",
+  "json_inference_rev": "0839151-dirty",
+  "stop_s": 26,
+  "start_s": 148
+}
