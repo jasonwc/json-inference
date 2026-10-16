@@ -1,0 +1,7 @@
+{
+  "model": "deepseek-v4-flash-dspark",
+  "timestamp": "2026-10-16T09:24:00Z",
+  "json_inference_rev": "726fdfd-dirty",
+  "stop_s": 34,
+  "start_s": 541
+}

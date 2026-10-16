@@ -1,0 +1,99 @@
+{
+  "model": "qwen3.8-flash-next-nvfp4",
+  "timestamp": "2026-10-16T07:52:25Z",
+  "json_inference_rev": "726fdfd-dirty",
+  "endpoint": "http://json-spark-1.json.lab:8000/v1",
+  "definition": {
+    "description": "NVIDIA Qwen3.8-Flash-Next NVFP4 (~133 GB), vLLM TP=2 + expert parallel + MTP via MiaAI-Lab's two-Spark recipe",
+    "engine": "launcher",
+    "nodes": 2,
+    "port": 8000,
+    "served_name": "qwen3.8-flash-next",
+    "launcher": {
+      "repo": "https://github.com/MiaAI-Lab/Qwen3.8-Flash-Next-Dual-DGX-Sparks",
+      "rev": "cd839d0b62f6c737178a0c2037733420e0524ebf",
+      "env_template": ".env.sample",
+      "pull": "./start.sh --no-launch",
+      "start": "./start.sh --launch",
+      "stop": "./stop.sh",
+      "nfs_container": "vllm-fn-nfs",
+      "env": {
+        "HEAD_IP": "{head.cx7_ip}",
+        "WORKER_IP": "{worker.cx7_ip}",
+        "WORKER_USER": "{user}",
+        "PORT": "8000",
+        "IFACE": "{cx7.netdev}",
+        "IB_HCA": "={cx7.ibdev}",
+        "IB_GID_INDEX": "{cx7.gid_index}",
+        "GPU_MEMORY_UTILIZATION": "0.80"
+      }
+    },
+    "bench": {
+      "prefill_tokens": [
+        2048,
+        8192,
+        32768
+      ]
+    }
+  },
+  "smoke": {
+    "pass": true,
+    "answer": "323"
+  },
+  "decode": {
+    "prompt_tokens": 76,
+    "completion_tokens": 512,
+    "ttft_s": 1.111,
+    "decode_tok_s": 40.64
+  },
+  "prefill": [
+    {
+      "target_tokens": 2048,
+      "prompt_tokens": 1820,
+      "ttft_s": 1.687,
+      "prefill_tok_s": 1078.8
+    },
+    {
+      "target_tokens": 8192,
+      "prompt_tokens": 7029,
+      "ttft_s": 3.022,
+      "prefill_tok_s": 2325.9
+    },
+    {
+      "target_tokens": 32768,
+      "prompt_tokens": 27797,
+      "ttft_s": 9.228,
+      "prefill_tok_s": 3012.2
+    }
+  ],
+  "parallel": [
+    {
+      "streams": 1,
+      "aggregate_tok_s": 46.13,
+      "mean_ttft_s": 0.196
+    },
+    {
+      "streams": 2,
+      "aggregate_tok_s": 56.99,
+      "mean_ttft_s": 0.426
+    },
+    {
+      "streams": 4,
+      "aggregate_tok_s": 114.83,
+      "mean_ttft_s": 0.407
+    }
+  ],
+  "decode_code": {
+    "prompt_tokens": 106,
+    "completion_tokens": 512,
+    "ttft_s": 0.344,
+    "decode_tok_s": 48.48
+  },
+  "parallel_code": [
+    {
+      "streams": 4,
+      "aggregate_tok_s": 121.21,
+      "mean_ttft_s": 1.104
+    }
+  ]
+}

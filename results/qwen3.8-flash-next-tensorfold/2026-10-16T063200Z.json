@@ -1,0 +1,94 @@
+{
+  "model": "qwen3.8-flash-next-tensorfold",
+  "timestamp": "2026-10-16T06:32:00Z",
+  "json_inference_rev": "726fdfd-dirty",
+  "endpoint": "http://json-spark-1.json.lab:8000/v1",
+  "definition": {
+    "description": "NVIDIA Qwen3.8-Flash-Next NVFP4 (~124 GiB) on TensorFold's Zig engine, TP=2 + MTP drafts via MiaAI-Lab's two-Spark recipe",
+    "engine": "launcher",
+    "nodes": 2,
+    "port": 8000,
+    "served_name": "qwen3.8-flash-next-tensorfold",
+    "launcher": {
+      "repo": "https://github.com/MiaAI-Lab/Qwen3.8-Flash-Dual-DGX-Sparks-TensorFold",
+      "rev": "6730319ed948cc88b525bbbdc9d309451a863834",
+      "env_template": "",
+      "pull": "./scripts/prepare.sh",
+      "start": "./start.sh",
+      "stop": "./stop.sh",
+      "env": {
+        "WORKER": "{user}@{worker.cx7_ip}",
+        "QUANT": "nvfp4",
+        "SERVED_NAME": "qwen3.8-flash-next-tensorfold",
+        "PORT": "8000"
+      }
+    },
+    "bench": {
+      "prefill_tokens": [
+        2048,
+        8192,
+        32768
+      ]
+    }
+  },
+  "smoke": {
+    "pass": true,
+    "answer": "323"
+  },
+  "decode": {
+    "prompt_tokens": 76,
+    "completion_tokens": 512,
+    "ttft_s": 0.136,
+    "decode_tok_s": 57.36
+  },
+  "prefill": [
+    {
+      "target_tokens": 2048,
+      "prompt_tokens": 1799,
+      "ttft_s": 0.553,
+      "prefill_tok_s": 3253.2
+    },
+    {
+      "target_tokens": 8192,
+      "prompt_tokens": 7005,
+      "ttft_s": 2.013,
+      "prefill_tok_s": 3479.9
+    },
+    {
+      "target_tokens": 32768,
+      "prompt_tokens": 27745,
+      "ttft_s": 8.021,
+      "prefill_tok_s": 3459.0
+    }
+  ],
+  "parallel": [
+    {
+      "streams": 1,
+      "aggregate_tok_s": 57.23,
+      "mean_ttft_s": 0.137
+    },
+    {
+      "streams": 2,
+      "aggregate_tok_s": 104.8,
+      "mean_ttft_s": 0.234
+    },
+    {
+      "streams": 4,
+      "aggregate_tok_s": 169.65,
+      "mean_ttft_s": 0.321
+    }
+  ],
+  "decode_code": {
+    "prompt_tokens": 106,
+    "completion_tokens": 512,
+    "ttft_s": 0.177,
+    "decode_tok_s": 57.64
+  },
+  "parallel_code": [
+    {
+      "streams": 4,
+      "aggregate_tok_s": 224.59,
+      "mean_ttft_s": 0.351
+    }
+  ]
+}

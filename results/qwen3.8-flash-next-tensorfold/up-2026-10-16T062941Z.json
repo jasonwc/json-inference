@@ -1,0 +1,7 @@
+{
+  "model": "qwen3.8-flash-next-tensorfold",
+  "timestamp": "2026-10-16T06:29:41Z",
+  "json_inference_rev": "726fdfd",
+  "stop_s": 37,
+  "start_s": 92
+}
