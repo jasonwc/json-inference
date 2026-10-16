@@ -8,3 +8,4 @@ json-lab's public front from Paper's staging NAT (34.225.25.29) with the token a
 
 | Definition | Served name | Started (load) | UTC window | Captured (turns) | Fallback calls | Turn latency (s) | Weather tool calls | Correct (/2: 391, 12:30) | Notes |
 |---|---|---|---|---|---|---|---|---|---|
+| deepseek-v4.1-flash-exl3 | DeepSeek-v4.1-Flash-EXL3 ✓ | yes (588 s) | 19:21:25–19:22:22 | 0/3: all 3 reached the backend via Paper (auth=1) but got **HTTP 400** | 3 → 404 (fallback asks for deepseek-v4-flash-vision-exp, which a strict vLLM rejects) | 16–23 | 0 | 0/2 (no answer) | 400 cause not in vLLM log; tools payload and context (600k) ruled out; Paper should hold the failed requests |
