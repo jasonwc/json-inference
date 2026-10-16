@@ -9,7 +9,8 @@ One operation at a time: the job runs as a child `inference` process, its state
 and log live under ~/.local/state/json-inference/ui/ so a page reload (or a
 restart of this server) still shows the last result.
 
-Security: HTTP basic auth from INFERENCE_UI_USER / INFERENCE_UI_PASSWORD
+Security: Authelia's Remote-User from INFERENCE_UI_TRUSTED_PROXIES (the lab ingress hosts), else
+HTTP basic auth from INFERENCE_UI_USER / INFERENCE_UI_PASSWORD
 (required; the server refuses to start without them), and POSTs must carry the
 X-Inference-UI header with a same-origin Origin (a cross-site form can't), so a
 logged-in browser can't be tricked into swapping. Model names are checked against
@@ -240,11 +241,20 @@ class Handler(BaseHTTPRequestHandler):
     user = ""
     password = ""
     dry_run = False
+    trusted_proxies: frozenset = frozenset()
 
     def log_message(self, fmt, *args):  # one line per request, no auth headers
         sys.stderr.write(f"{self.address_string()} {fmt % args}\n")
 
     def _authed(self) -> bool:
+        # Behind the lab ingress, Authelia has already signed the user in and passes them
+        # in Remote-User. Trusted only from the ingress hosts (INFERENCE_UI_TRUSTED_PROXIES,
+        # the k3s nodes: their traffic arrives SNATed to the node address) and only for the
+        # configured user; anyone else, e.g. direct LAN access, still needs basic auth.
+        if self.client_address[0] in self.trusted_proxies:
+            remote = self.headers.get("Remote-User", "")
+            if remote and hmac.compare_digest(remote, self.user):
+                return True
         h = self.headers.get("Authorization", "")
         if h.startswith("Basic "):
             try:
@@ -312,6 +322,8 @@ def serve(host: str, port: int, dry_run: bool) -> None:
     if not user or len(password) < 12:
         raise SystemExit("set INFERENCE_UI_USER and INFERENCE_UI_PASSWORD (12+ characters)")
     Handler.user, Handler.password, Handler.dry_run = user, password, dry_run
+    Handler.trusted_proxies = frozenset(
+        a.strip() for a in os.environ.get("INFERENCE_UI_TRUSTED_PROXIES", "").split(",") if a.strip())
     _recover()
     print(f"[inference] serve-ui on http://{host}:{port}{' (dry run)' if dry_run else ''}", flush=True)
     ThreadingHTTPServer((host, port), Handler).serve_forever()
