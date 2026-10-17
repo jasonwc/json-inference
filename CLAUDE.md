@@ -18,6 +18,7 @@ between them). The Sparks' OS, network and monitoring belong to json-lab
   - `config.py`: loading definitions
   - `engines.py`: `vllm` and `launcher` engines, detached remote jobs
   - `bench.py`: benchmark and results table
+  - `quality.py` + `quality_items.json`: `bench --quality`, a small deterministic quality suite (original items; results/<model>/quality-*.json)
   - `web.py`: `inference serve-ui`, the model-swap page at models.json.lab (runs on json-mini)
 - `bin/inference`: runs the CLI from the checkout (the devshell puts `bin/` on PATH)
 - `results/<model>/<timestamp>.json`: committed benchmark runs
@@ -25,7 +26,7 @@ between them). The Sparks' OS, network and monitoring belong to json-lab
 
 ## Key Commands
 
-- `inference list | pull <m> | up <m> | bench <m> | results | status | logs <m> [-f] | cancel <m> | sweep [m...] | down | serve-ui [--dry-run]`
+- `inference list | pull <m> | up <m> | bench <m> [--quality] | results | status | logs <m> [-f] | cancel <m> | sweep [m...] | down | serve-ui [--dry-run]`
 - `python3 -m py_compile json_inference/*.py`: quick syntax check
 - `nix flake check`: validate flake
 

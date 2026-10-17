@@ -1,0 +1,185 @@
+{
+  "model": "deepseek-v4-flash-dspark",
+  "kind": "quality",
+  "timestamp": "2026-10-17T22:16:36Z",
+  "json_inference_rev": "fcf8990-dirty",
+  "endpoint": "http://json-spark-1.json.lab:8000/v1",
+  "max_tokens": 2048,
+  "suites": {
+    "math": {
+      "passed": 8,
+      "total": 8,
+      "items": [
+        {
+          "id": "m1",
+          "pass": true,
+          "seconds": 3.73,
+          "reply": "The bakery bakes 18 trays of 80 muffins each, so the total is 18 multiplied by 80, which equals 1440. \n1440"
+        },
+        {
+          "id": "m2",
+          "pass": true,
+          "seconds": 3.87,
+          "reply": "She starts with 52, gives away 9 to her brother (52 - 9 = 43), gives away 18 to her friend (43 - 18 = 25), and then buys 12 more (25 + 12 = 37).  \n37"
+        },
+        {
+          "id": "m3",
+          "pass": true,
+          "seconds": 3.45,
+          "reply": "The train travels 90 km/h \u00d7 2 hours = 180 km, and then 45 km/h \u00d7 1 hour = 45 km. Adding these gives 180 + 45 = 225 km. 225"
+        },
+        {
+          "id": "m4",
+          "pass": true,
+          "seconds": 7.95,
+          "reply": " w \\) cm.  \nThen the length is \\( w + 10 \\) cm.  \nThe perimeter is given by \\( 2 \\times (\\text{length} + \\text{width}) = 48 \\).  \n\nSo,  \n\\( 2 \\times ((w + 10) + w) = 48 \\)  \n\\( 2 \\times (2w + 10) = 48 \\)  \n\\( 4w + 20 = 48 \\)  \n\\( 4w = 28 \\)  \n\\( w = 7 \\)  \n\nLength = \\( w + 10 = 7 + 10 = 17 \\).  \n\n17"
+        },
+        {
+          "id": "m5",
+          "pass": true,
+          "seconds": 1.26,
+          "reply": "312"
+        },
+        {
+          "id": "m6",
+          "pass": true,
+          "seconds": 1.86,
+          "reply": "The fifth number is 29."
+        },
+        {
+          "id": "m7",
+          "pass": true,
+          "seconds": 5.44,
+          "reply": "45 squared equals 2025"
+        },
+        {
+          "id": "m8",
+          "pass": true,
+          "seconds": 2.77,
+          "reply": "The net rate is 75 - 25 = 50 litres per minute.  \n350 \u00f7 50 = 7 minutes.  \n7"
+        }
+      ]
+    },
+    "knowledge": {
+      "passed": 8,
+      "total": 8,
+      "items": [
+        {
+          "id": "k1",
+          "pass": true,
+          "seconds": 2.06,
+          "reply": "B"
+        },
+        {
+          "id": "k2",
+          "pass": true,
+          "seconds": 2.65,
+          "reply": "C"
+        },
+        {
+          "id": "k3",
+          "pass": true,
+          "seconds": 1.84,
+          "reply": "A"
+        },
+        {
+          "id": "k4",
+          "pass": true,
+          "seconds": 1.09,
+          "reply": "D"
+        },
+        {
+          "id": "k5",
+          "pass": true,
+          "seconds": 2.15,
+          "reply": "B"
+        },
+        {
+          "id": "k6",
+          "pass": true,
+          "seconds": 0.57,
+          "reply": "C"
+        },
+        {
+          "id": "k7",
+          "pass": true,
+          "seconds": 3.17,
+          "reply": "A"
+        },
+        {
+          "id": "k8",
+          "pass": true,
+          "seconds": 0.71,
+          "reply": "D"
+        }
+      ]
+    },
+    "instructions": {
+      "passed": 6,
+      "total": 6,
+      "items": [
+        {
+          "id": "i1",
+          "pass": true,
+          "seconds": 4.04,
+          "reply": "- Improves cardiovascular health and reduces the risk of heart disease.\n- Enhances mental well-being by reducing stress, anxiety, and depression.\n- Helps with weight management and strengthens muscles and bones."
+        },
+        {
+          "id": "i2",
+          "pass": true,
+          "seconds": 5.68,
+          "reply": "the ocean is a vast, breathing expanse of saltwater that holds the planet's deepest secrets and its most ancient rhythms."
+        },
+        {
+          "id": "i3",
+          "pass": true,
+          "seconds": 2.54,
+          "reply": "{\"city\": \"Tokyo\", \"country\": \"Japan\"}"
+        },
+        {
+          "id": "i4",
+          "pass": true,
+          "seconds": 6.36,
+          "reply": "Golden light melts into dusk."
+        },
+        {
+          "id": "i5",
+          "pass": true,
+          "seconds": 5.44,
+          "reply": "Red and Blue. DONE"
+        },
+        {
+          "id": "i6",
+          "pass": true,
+          "seconds": 13.13,
+          "reply": "A cat naps on a mat."
+        }
+      ]
+    },
+    "recall": {
+      "passed": 3,
+      "total": 3,
+      "items": [
+        {
+          "id": "recall-2k",
+          "pass": true,
+          "seconds": 2.62,
+          "reply": "8347"
+        },
+        {
+          "id": "recall-8k",
+          "pass": true,
+          "seconds": 4.76,
+          "reply": "6790"
+        },
+        {
+          "id": "recall-32k",
+          "pass": true,
+          "seconds": 15.65,
+          "reply": "7097"
+        }
+      ]
+    }
+  },
+  "score": 100.0
+}

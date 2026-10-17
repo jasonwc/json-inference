@@ -17,6 +17,7 @@ inference list                      # model definitions
 inference pull gpt-oss-120b         # stage image + weights on the Sparks (resumable; --no-wait to return early)
 inference up gpt-oss-120b           # stop anything running, serve, wait until ready
 inference bench gpt-oss-120b        # smoke + speed benchmark, saved to results/
+inference bench gpt-oss-120b --quality  # quick quality suite (math, knowledge, instructions, recall)
 inference results                   # latest result per model, side by side
 inference status | logs <model> [-f] | down
 inference cancel <model>            # stop its background downloads/boots on the Sparks
@@ -105,8 +106,11 @@ where it runs as the `inference-ui` systemd user service (json-workstation
 running/waiting requests, every definition with its latest benchmark, and
 offers Swap (`inference up`) and Stop (`inference down`) with a confirmation,
 since Byrdpip, Osty, voice and Paper lose the model while the Sparks switch.
-Definitions whose id looks like an OpenAI/Anthropic model (`gpt-*`, `o1`/`o3`,
-`claude*`) are marked "not for Paper". One operation at a time; its log and
+Definitions whose served name Paper doesn't route are marked "Paper doesn't route this
+model": Jason's production Paper org routes exact names only, by default just
+`deepseek-v4-flash-vision-exp` (override with `INFERENCE_UI_PAPER_MODELS`); with any other
+model, Byrdpip's turns fall back to the local endpoint, uncaptured. The table also shows the
+latest `--quality` score. One operation at a time; its log and
 result live in `~/.local/state/json-inference/ui/`. Pull, bench and sweep stay
 on the CLI.
 

@@ -1,0 +1,127 @@
+{
+  "_note": "Original items written for json-inference's `bench --quality` (2026-10-17). Small on purpose; answers are exact.",
+  "math": [
+    {
+      "id": "m1",
+      "answer": 1440,
+      "prompt": "A bakery sells muffins in boxes of 6. It bakes 18 trays of 80 muffins each. How many muffins does it bake in total? End your reply with the number."
+    },
+    {
+      "id": "m2",
+      "answer": 37,
+      "prompt": "Mia has 52 stickers. She gives 9 to her brother and twice as many to her friend. Then she buys 12 more. How many stickers does she have now? End your reply with the number."
+    },
+    {
+      "id": "m3",
+      "answer": 225,
+      "prompt": "A train travels at 90 km/h for 2 hours and then at 45 km/h for 1 hour. How many kilometres does it travel in total? End your reply with the number."
+    },
+    {
+      "id": "m4",
+      "answer": 17,
+      "prompt": "A rectangle has a perimeter of 48 cm and its length is 10 cm more than its width. What is its length in cm? End your reply with the number."
+    },
+    {
+      "id": "m5",
+      "answer": 312,
+      "prompt": "Tickets cost $13 for adults and $8 for children. A school group buys 16 adult and 13 child tickets. How many dollars do they pay? End your reply with the number."
+    },
+    {
+      "id": "m6",
+      "answer": 29,
+      "prompt": "The average of five numbers is 21. Four of them are 12, 18, 20 and 26. What is the fifth number? End your reply with the number."
+    },
+    {
+      "id": "m7",
+      "answer": 2025,
+      "prompt": "What is 45 squared? End your reply with the number."
+    },
+    {
+      "id": "m8",
+      "answer": 7,
+      "prompt": "A full tank holds 350 litres. A pump removes 75 litres per minute while a hose adds 25 litres per minute. After how many minutes is the tank empty? End your reply with the number."
+    }
+  ],
+  "knowledge": [
+    {
+      "id": "k1",
+      "answer": "B",
+      "prompt": "Which planet has the shortest orbital period around the Sun?\nA) Venus\nB) Mercury\nC) Mars\nD) Earth\nAnswer with the letter only."
+    },
+    {
+      "id": "k2",
+      "answer": "C",
+      "prompt": "Which gas makes up the largest share of Earth's atmosphere by volume?\nA) Oxygen\nB) Argon\nC) Nitrogen\nD) Carbon dioxide\nAnswer with the letter only."
+    },
+    {
+      "id": "k3",
+      "answer": "A",
+      "prompt": "In computing, what does the acronym 'DNS' stand for?\nA) Domain Name System\nB) Digital Network Service\nC) Data Node Switch\nD) Dynamic Name Server\nAnswer with the letter only."
+    },
+    {
+      "id": "k4",
+      "answer": "D",
+      "prompt": "Which of these is a prime number?\nA) 51\nB) 57\nC) 91\nD) 97\nAnswer with the letter only."
+    },
+    {
+      "id": "k5",
+      "answer": "B",
+      "prompt": "Who wrote the novel 'Pride and Prejudice'?\nA) Charlotte Bronte\nB) Jane Austen\nC) George Eliot\nD) Mary Shelley\nAnswer with the letter only."
+    },
+    {
+      "id": "k6",
+      "answer": "C",
+      "prompt": "What is the time complexity of binary search on a sorted array of n elements?\nA) O(n)\nB) O(n log n)\nC) O(log n)\nD) O(1)\nAnswer with the letter only."
+    },
+    {
+      "id": "k7",
+      "answer": "A",
+      "prompt": "Which organ in the human body produces insulin?\nA) Pancreas\nB) Liver\nC) Kidney\nD) Spleen\nAnswer with the letter only."
+    },
+    {
+      "id": "k8",
+      "answer": "D",
+      "prompt": "Which HTTP status code means 'Too Many Requests'?\nA) 403\nB) 404\nC) 418\nD) 429\nAnswer with the letter only."
+    }
+  ],
+  "instructions": [
+    {
+      "id": "i1",
+      "check": "bullets",
+      "n": 3,
+      "prompt": "List three benefits of regular exercise. Reply with exactly three lines, each starting with '- ', and nothing else."
+    },
+    {
+      "id": "i2",
+      "check": "lowercase",
+      "prompt": "Describe the ocean in one sentence. Use only lowercase letters; no capital letters anywhere."
+    },
+    {
+      "id": "i3",
+      "check": "json_keys",
+      "keys": [
+        "city",
+        "country"
+      ],
+      "prompt": "Give the capital of Japan as a JSON object with exactly the keys \"city\" and \"country\". Reply with the JSON only."
+    },
+    {
+      "id": "i4",
+      "check": "word_count",
+      "n": 5,
+      "prompt": "Describe a sunset in exactly five words. Reply with those five words only."
+    },
+    {
+      "id": "i5",
+      "check": "ends_with",
+      "word": "DONE",
+      "prompt": "Name two primary colors, then end your reply with the word DONE in capital letters."
+    },
+    {
+      "id": "i6",
+      "check": "no_letter",
+      "letter": "e",
+      "prompt": "Write a short sentence about a cat without using the letter 'e' anywhere. Reply with the sentence only."
+    }
+  ]
+}

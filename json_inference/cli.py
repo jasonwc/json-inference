@@ -19,6 +19,9 @@ def main() -> None:
         s.add_argument("model")
         if name == "pull":
             s.add_argument("--no-wait", action="store_true", help="start the download and return")
+        if name == "bench":
+            s.add_argument("--quality", action="store_true",
+                           help="run the quick quality suite (json_inference/quality.py) instead of speed")
     cn = sub.add_parser("cancel", help="stop MODEL's background jobs (downloads, recipe boots)")
     cn.add_argument("model")
     lg = sub.add_parser("logs", help="server logs for MODEL")
@@ -68,7 +71,12 @@ def main() -> None:
         elif args.cmd == "logs":
             engines.logs(cluster, model, args.follow)
         elif args.cmd == "bench":
-            bench.run(engines.endpoint(cluster, model), model)
+            if args.quality:
+                from . import quality
+
+                quality.run(engines.endpoint(cluster, model), model)
+            else:
+                bench.run(engines.endpoint(cluster, model), model)
 
 
 def sweep(cluster, names: list[str]) -> None:

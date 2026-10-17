@@ -23,6 +23,7 @@ import urllib.request
 from datetime import datetime, timezone
 
 from .config import REPO_ROOT, RESULTS_DIR, Model
+from . import quality
 from .engines import git_rev
 
 DECODE_PROMPT = "Write a detailed, 600-word short story about a lighthouse keeper who finds a message in a bottle."
@@ -198,12 +199,13 @@ def summary() -> None:
     """Latest result per model, side by side."""
     rows = []
     for model_dir in sorted(RESULTS_DIR.glob("*/")):
-        latest = sorted(p for p in model_dir.glob("*.json") if not p.name.startswith("up-"))
+        latest = sorted(p for p in model_dir.glob("*.json") if not p.name.startswith(("up-", "quality-")))
         if not latest:
             continue
         r = json.loads(latest[-1].read_text())
         ups = sorted(model_dir.glob("up-*.json"))
         start = json.loads(ups[-1].read_text())["start_s"] if ups else "-"
+        q = quality.latest(model_dir)
         prefill = {p["target_tokens"]: p.get("prefill_tok_s", "err") for p in r["prefill"]}
         agg = {p["streams"]: p.get("aggregate_tok_s", "err") for p in r["parallel"]}
         rows.append(
@@ -218,9 +220,10 @@ def summary() -> None:
                 r.get("decode_code", {}).get("decode_tok_s", "-"),
                 (r.get("parallel_code") or [{}])[0].get("aggregate_tok_s", "-"),
                 start,
+                f"{q['score']}%" if q else "-",
             ]
         )
-    header = ["model", "date", "smoke", "ttft s", "prose tok/s", "prefill tok/s", "prose x4", "code tok/s", "code x4", "start s"]
+    header = ["model", "date", "smoke", "ttft s", "prose tok/s", "prefill tok/s", "prose x4", "code tok/s", "code x4", "start s", "quality"]
     widths = [max(len(str(x)) for x in col) for col in zip(header, *rows)]
     for row in [header, *rows]:
         print("  ".join(str(x).ljust(w) for x, w in zip(row, widths)))

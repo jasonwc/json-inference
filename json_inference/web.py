@@ -39,9 +39,11 @@ from .config import REPO_ROOT, RESULTS_DIR, list_models, load_cluster
 STATE_DIR = Path(os.environ.get("XDG_STATE_HOME", Path.home() / ".local/state")) / "json-inference/ui"
 JOB_FILE = STATE_DIR / "job.json"
 LOG_FILE = STATE_DIR / "job.log"
-# Paper (and other OpenAI/Anthropic-style routers) route by exact model name;
-# ids that look like OpenAI's or Anthropic's would be sent to the wrong place.
-PAPER_UNSAFE = re.compile(r"^(gpt-|o[134](-|$)|claude)", re.I)
+# Paper's gateway routes by exact model name, and Jason's production org (qse15, gateway
+# `default`, backend json-sparks) routes only these; any other served name gets an empty
+# 500 there, so Byrdpip falls back to the local endpoint uncaptured. Override with
+# INFERENCE_UI_PAPER_MODELS (comma-separated).
+PAPER_ROUTED = {m.strip() for m in os.environ.get("INFERENCE_UI_PAPER_MODELS", "deepseek-v4-flash-vision-exp").split(",") if m.strip()}
 
 _lock = threading.Lock()
 
@@ -137,7 +139,8 @@ def _activity() -> dict:
 
 def _latest_results(name: str) -> dict:
     d = RESULTS_DIR / name
-    benches = sorted(p for p in d.glob("*.json") if not p.name.startswith("up-"))
+    benches = sorted(p for p in d.glob("*.json") if not p.name.startswith(("up-", "quality-")))
+    quals = sorted(d.glob("quality-*.json"))
     ups = sorted(d.glob("up-*.json"))
     r: dict = {}
     if benches:
@@ -150,6 +153,11 @@ def _latest_results(name: str) -> dict:
                 "decode_tok_s": (b.get("decode") or {}).get("decode_tok_s"),
                 "code_tok_s": (b.get("decode_code") or {}).get("decode_tok_s"),
             }
+        except (OSError, ValueError):
+            pass
+    if quals:
+        try:
+            r["quality"] = json.loads(quals[-1].read_text()).get("score")
         except (OSError, ValueError):
             pass
     if ups:
@@ -168,7 +176,7 @@ def _models() -> list[dict]:
             "description": m.description,
             "engine": m.engine,
             "nodes": m.nodes,
-            "paper_unsafe": bool(PAPER_UNSAFE.match(m.served_name)),
+            "paper_unrouted": m.served_name not in PAPER_ROUTED,
             "results": _latest_results(m.name),
         }
         for m in list_models()
@@ -355,7 +363,7 @@ pre{white-space:pre-wrap;word-break:break-all;background:var(--bg);border:1px so
 <div style="margin-left:auto"><button id="stop">Stop</button></div></div></div>
 <div class="card" id="jobcard" hidden><div><b id="jobtitle"></b> <span id="jobstate"></span></div><pre id="joblog"></pre></div>
 <div class="card"><table><thead><tr><th>Model</th><th class="num">TTFT s</th><th class="num">prose tok/s</th>
-<th class="num hide-sm">code tok/s</th><th class="num hide-sm">start s</th><th class="hide-sm">benched</th><th></th></tr></thead>
+<th class="num hide-sm">code tok/s</th><th class="num hide-sm">quality %</th><th class="num hide-sm">start s</th><th class="hide-sm">benched</th><th></th></tr></thead>
 <tbody id="models"></tbody></table>
 <p class="muted" style="margin:10px 0 0">Swapping stops the current model first: Byrdpip, Osty, voice and Paper have no model until the new one answers (several minutes).</p></div>
 </main><script>
@@ -365,7 +373,7 @@ const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&g
 const v=x=>x===undefined||x===null?"–":x;
 async function post(path,body){const r=await fetch(path,{method:"POST",headers:{"Content-Type":"application/json","X-Inference-UI":"1"},body:JSON.stringify(body||{})});
  const j=await r.json().catch(()=>({message:r.status}));if(!r.ok)alert(j.message||j.error||r.status);refresh();}
-function swap(name,unsafe){let m="Serve "+name+"?\\n\\n"+WARN;if(unsafe)m+="\\n\\nNote: its id looks like an OpenAI/Anthropic model; Paper must not route to it.";
+function swap(name,unrouted){let m="Serve "+name+"?\\n\\n"+WARN;if(unrouted)m+="\\n\\nNote: Paper doesn't route this model, so Byrdpip's turns fall back to the local endpoint (not captured).";
  if(confirm(m))post("/api/up",{model:name});}
 document.getElementById("stop").onclick=()=>{if(confirm("Stop every model on the Sparks?\\n\\n"+WARN+"\\nNothing will be served until you swap one in."))post("/api/down");};
 async function refresh(){let s;try{s=await (await fetch("/api/state",{cache:"no-store"})).json();}catch(e){return;}
@@ -378,10 +386,10 @@ async function refresh(){let s;try{s=await (await fetch("/api/state",{cache:"no-
   const pre=document.getElementById("joblog");const atEnd=pre.scrollTop+pre.clientHeight>=pre.scrollHeight-4;pre.textContent=j.log||"";if(atEnd)pre.scrollTop=pre.scrollHeight;}
  document.getElementById("stop").disabled=busy;
  document.getElementById("models").innerHTML=s.models.map(m=>{const r=m.results||{};const on=serving.includes(m.served_name);
-  return `<tr><td><b>${esc(m.name)}</b>${on?'<span class="badge serving">serving</span>':""}${m.paper_unsafe?'<span class="badge warn" title="Paper routes by exact name; this id looks like an OpenAI/Anthropic model">not for Paper</span>':""}${r.smoke===false?'<span class="badge bad">smoke failed</span>':""}
+  return `<tr><td><b>${esc(m.name)}</b>${on?'<span class="badge serving">serving</span>':""}${m.paper_unrouted?'<span class="badge warn" title="Paper routes exact model names; this one isn\\'t routed, so Byrdpip falls back to local (uncaptured)">Paper doesn\\'t route this model</span>':""}${r.smoke===false?'<span class="badge bad">smoke failed</span>':""}
   <div class="muted">${esc(m.description)} · ${m.nodes} Spark${m.nodes>1?"s":""} · ${esc(m.engine)}</div></td>
-  <td class="num">${v(r.ttft_s)}</td><td class="num">${v(r.decode_tok_s)}</td><td class="num hide-sm">${v(r.code_tok_s)}</td><td class="num hide-sm">${v(r.start_s)}</td>
-  <td class="hide-sm">${esc(r.date||"never")}</td><td><button class="primary" ${busy||on?"disabled":""} data-m="${esc(m.name)}" data-u="${m.paper_unsafe?1:0}">Swap</button></td></tr>`}).join("");
+  <td class="num">${v(r.ttft_s)}</td><td class="num">${v(r.decode_tok_s)}</td><td class="num hide-sm">${v(r.code_tok_s)}</td><td class="num hide-sm">${v(r.quality)}</td><td class="num hide-sm">${v(r.start_s)}</td>
+  <td class="hide-sm">${esc(r.date||"never")}</td><td><button class="primary" ${busy||on?"disabled":""} data-m="${esc(m.name)}" data-u="${m.paper_unrouted?1:0}">Swap</button></td></tr>`}).join("");
  document.querySelectorAll("button[data-m]").forEach(b=>b.onclick=()=>swap(b.dataset.m,b.dataset.u==="1"));}
 refresh();setInterval(refresh,3000);
 </script></body></html>
