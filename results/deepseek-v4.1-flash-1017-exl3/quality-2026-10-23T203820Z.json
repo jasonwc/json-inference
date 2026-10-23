@@ -1,0 +1,185 @@
+{
+  "model": "deepseek-v4.1-flash-1017-exl3",
+  "kind": "quality",
+  "timestamp": "2026-10-23T20:38:20Z",
+  "json_inference_rev": "b9a11d3-dirty",
+  "endpoint": "http://json-spark-1.json.lab:8000/v1",
+  "max_tokens": 2048,
+  "suites": {
+    "math": {
+      "passed": 8,
+      "total": 8,
+      "items": [
+        {
+          "id": "m1",
+          "pass": true,
+          "seconds": 0.99,
+          "reply": "The bakery bakes \\(18 \\times 80 = 1440\\) muffins in total. 1440"
+        },
+        {
+          "id": "m2",
+          "pass": true,
+          "seconds": 1.57,
+          "reply": "Mia gives 9 + 18 = 27 stickers away.  \nShe has 52 \u2212 27 = 25 stickers left.  \nThen she buys 12 more: 25 + 12 = 37.  \n37"
+        },
+        {
+          "id": "m3",
+          "pass": true,
+          "seconds": 1.06,
+          "reply": "The train travels \\(90 \\times 2 = 180\\) km, then \\(45 \\times 1 = 45\\) km. Total distance is \\(180 + 45 = 225\\) km.\n\n225"
+        },
+        {
+          "id": "m4",
+          "pass": true,
+          "seconds": 1.12,
+          "reply": "The length is 17 cm.\n\n17"
+        },
+        {
+          "id": "m5",
+          "pass": true,
+          "seconds": 1.02,
+          "reply": "They pay \\(16 \\times 13 + 13 \\times 8 = 208 + 104 = 312\\) dollars.\n\n312"
+        },
+        {
+          "id": "m6",
+          "pass": true,
+          "seconds": 1.36,
+          "reply": "The sum of the five numbers is \\(5 \\times 21 = 105\\).  \nThe sum of the four given numbers is \\(12 + 18 + 20 + 26 = 76\\).  \nSo the fifth number is \\(105 - 76 = 29\\).\n\n29"
+        },
+        {
+          "id": "m7",
+          "pass": true,
+          "seconds": 0.77,
+          "reply": "45 squared is 2025."
+        },
+        {
+          "id": "m8",
+          "pass": true,
+          "seconds": 1.34,
+          "reply": "The net removal rate is \\(75 - 25 = 50\\) litres per minute.  \nTime to empty: \\(350 \\div 50 = 7\\) minutes.\n\n7"
+        }
+      ]
+    },
+    "knowledge": {
+      "passed": 8,
+      "total": 8,
+      "items": [
+        {
+          "id": "k1",
+          "pass": true,
+          "seconds": 0.54,
+          "reply": "B"
+        },
+        {
+          "id": "k2",
+          "pass": true,
+          "seconds": 0.49,
+          "reply": "C"
+        },
+        {
+          "id": "k3",
+          "pass": true,
+          "seconds": 0.47,
+          "reply": "A"
+        },
+        {
+          "id": "k4",
+          "pass": true,
+          "seconds": 0.71,
+          "reply": "D"
+        },
+        {
+          "id": "k5",
+          "pass": true,
+          "seconds": 0.38,
+          "reply": "B"
+        },
+        {
+          "id": "k6",
+          "pass": true,
+          "seconds": 0.52,
+          "reply": "C"
+        },
+        {
+          "id": "k7",
+          "pass": true,
+          "seconds": 0.41,
+          "reply": "A"
+        },
+        {
+          "id": "k8",
+          "pass": true,
+          "seconds": 0.5,
+          "reply": "D"
+        }
+      ]
+    },
+    "instructions": {
+      "passed": 6,
+      "total": 6,
+      "items": [
+        {
+          "id": "i1",
+          "pass": true,
+          "seconds": 1.28,
+          "reply": "- Improves cardiovascular health and reduces the risk of heart disease.\n- Helps maintain a healthy weight and strengthens muscles and bones.\n- Enhances mood and reduces symptoms of anxiety and depression."
+        },
+        {
+          "id": "i2",
+          "pass": true,
+          "seconds": 1.97,
+          "reply": "the ocean is a vast, deep, and restless body of salt water that shapes climates and supports countless forms of life."
+        },
+        {
+          "id": "i3",
+          "pass": true,
+          "seconds": 0.56,
+          "reply": "{\"city\":\"Tokyo\",\"country\":\"Japan\"}"
+        },
+        {
+          "id": "i4",
+          "pass": true,
+          "seconds": 1.41,
+          "reply": "Golden sky fades into dusk"
+        },
+        {
+          "id": "i5",
+          "pass": true,
+          "seconds": 1.34,
+          "reply": "Red and blue. DONE"
+        },
+        {
+          "id": "i6",
+          "pass": true,
+          "seconds": 2.96,
+          "reply": "A cat naps on a soft rug."
+        }
+      ]
+    },
+    "recall": {
+      "passed": 3,
+      "total": 3,
+      "items": [
+        {
+          "id": "recall-2k",
+          "pass": true,
+          "seconds": 1.72,
+          "reply": "8347"
+        },
+        {
+          "id": "recall-8k",
+          "pass": true,
+          "seconds": 3.69,
+          "reply": "6790"
+        },
+        {
+          "id": "recall-32k",
+          "pass": true,
+          "seconds": 11.76,
+          "reply": "7097"
+        }
+      ]
+    }
+  },
+  "score": 100.0
+}

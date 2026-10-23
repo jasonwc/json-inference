@@ -1,0 +1,99 @@
+{
+  "model": "deepseek-v4.1-flash-1017-exl3",
+  "timestamp": "2026-10-23T20:37:22Z",
+  "json_inference_rev": "b9a11d3-dirty",
+  "endpoint": "http://json-spark-1.json.lab:8000/v1",
+  "definition": {
+    "description": "DeepSeek-V4.1-Flash-1017, EXL3 2.9 bpw (196 GiB + ~203 GB Engram tables), TP=2 on TensorFold via MiaAI-Lab's two-Spark recipe",
+    "engine": "launcher",
+    "nodes": 2,
+    "port": 8000,
+    "served_name": "DeepSeek-V4.1-Flash-1017",
+    "launcher": {
+      "repo": "https://github.com/MiaAI-Lab/DeepSeek-v4.1-Flash-1017-2x-DGX-Sparks",
+      "rev": "370daf0cc38f348516a98ebab38f6053858eab1f",
+      "env_template": "",
+      "env_file": ".env",
+      "pull": "bash -c 'set -euo pipefail; . scripts/config.sh\nhf download \"$MODEL_ID\" --revision \"$MODEL_REVISION\" --cache-dir \"$HF_CACHE/hub\" >/dev/null\ninc=(--include model.safetensors.index.json --include config.json); for f in $ENGRAM_SHARDS; do inc+=(--include \"$f\"); done\nhf download \"$ENGRAM_ID\" --revision \"$ENGRAM_REVISION\" --cache-dir \"$HF_CACHE/hub\" \"${inc[@]}\" >/dev/null\necho \"downloaded $MODEL_ID@${MODEL_REVISION:0:8} and $ENGRAM_ID@${ENGRAM_REVISION:0:8} shards: $ENGRAM_SHARDS\"' ",
+      "start": "docker rm -f dsv41-1017-nfs >/dev/null 2>&1 || true\ndocker run -d --name dsv41-1017-nfs --restart unless-stopped --privileged --network host -e NFS_CLIENTS=192.168.100.11,192.168.100.0/24 -v \"$HOME/.cache/huggingface:/export\" dspark-nfs:local >/dev/null\n./start.sh",
+      "nfs_container": "dsv41-1017-nfs",
+      "stop": "./stop.sh",
+      "logs": "docker logs --tail 200 -f dsv41-1017-exl3-tf",
+      "env": {
+        "WORKER": "{user}@{worker.cx7_ip}",
+        "FABRIC_PEER": "{worker.cx7_ip}",
+        "PORT": "8000",
+        "NFS_SERVER": "{head.cx7_ip}",
+        "NFS_PATH": "/",
+        "CONTEXT": "524288"
+      }
+    },
+    "bench": {
+      "prefill_tokens": [
+        2048,
+        8192,
+        32768
+      ]
+    }
+  },
+  "smoke": {
+    "pass": true,
+    "answer": "323"
+  },
+  "decode": {
+    "prompt_tokens": 51,
+    "completion_tokens": 512,
+    "ttft_s": 0.272,
+    "decode_tok_s": 47.92
+  },
+  "prefill": [
+    {
+      "target_tokens": 2048,
+      "prompt_tokens": 1776,
+      "ttft_s": 0.942,
+      "prefill_tok_s": 1885.4
+    },
+    {
+      "target_tokens": 8192,
+      "prompt_tokens": 6946,
+      "ttft_s": 3.044,
+      "prefill_tok_s": 2281.9
+    },
+    {
+      "target_tokens": 32768,
+      "prompt_tokens": 27761,
+      "ttft_s": 11.42,
+      "prefill_tok_s": 2430.9
+    }
+  ],
+  "parallel": [
+    {
+      "streams": 1,
+      "aggregate_tok_s": 57.97,
+      "mean_ttft_s": 0.208
+    },
+    {
+      "streams": 2,
+      "aggregate_tok_s": 96.28,
+      "mean_ttft_s": 0.304
+    },
+    {
+      "streams": 4,
+      "aggregate_tok_s": 130.65,
+      "mean_ttft_s": 0.509
+    }
+  ],
+  "decode_code": {
+    "prompt_tokens": 85,
+    "completion_tokens": 512,
+    "ttft_s": 0.3,
+    "decode_tok_s": 71.94
+  },
+  "parallel_code": [
+    {
+      "streams": 4,
+      "aggregate_tok_s": 193.17,
+      "mean_ttft_s": 0.739
+    }
+  ]
+}

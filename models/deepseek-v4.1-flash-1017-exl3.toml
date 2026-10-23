@@ -1,0 +1,52 @@
+description = "DeepSeek-V4.1-Flash-1017, EXL3 2.9 bpw (196 GiB + ~203 GB Engram tables), TP=2 on TensorFold via MiaAI-Lab's two-Spark recipe"
+# A third-party recipe (MiaAI-Lab, pre-approved) with its own launcher, run at a pinned
+# commit. Engine: TensorFold native (bertholomus' dsv41 build, pinned by the recipe).
+# Weights: Mia-AiLab's experimental EAQ v1 quant (no perplexity/KL published), pinned
+# by the recipe's scripts/config.sh, plus the 1017 base model's two Engram shards.
+#
+# pull only downloads the two (the recipe's own first run stops whatever is serving
+# before it downloads, so it isn't used for that). The rest of its first run happens
+# at the first `up`, in a window: the image (two Zig builds, or its published ghcr.io
+# image), the kit, both ranks' weight files, Engram's tables copied to spark-2. The
+# worker reads the head's HF cache over NFS: start runs an NFSv4 server container
+# (dsv41-1017-nfs, the DSpark recipe's dspark-nfs:local image, which exports
+# ~/.cache/huggingface as fsid=0, read-only, to spark-2), so the Sparks' OS needs no
+# NFS server; the recipe mounts it with NFS_PATH=/.
+engine = "launcher"
+nodes = 2
+port = 8000
+served_name = "DeepSeek-V4.1-Flash-1017"
+
+[launcher]
+repo = "https://github.com/MiaAI-Lab/DeepSeek-v4.1-Flash-1017-2x-DGX-Sparks"
+rev = "370daf0cc38f348516a98ebab38f6053858eab1f"
+# The recipe reads scripts/local.sh or .env and ships no .env template.
+env_template = ""
+env_file = ".env"
+pull = '''bash -c 'set -euo pipefail; . scripts/config.sh
+hf download "$MODEL_ID" --revision "$MODEL_REVISION" --cache-dir "$HF_CACHE/hub" >/dev/null
+inc=(--include model.safetensors.index.json --include config.json); for f in $ENGRAM_SHARDS; do inc+=(--include "$f"); done
+hf download "$ENGRAM_ID" --revision "$ENGRAM_REVISION" --cache-dir "$HF_CACHE/hub" "${inc[@]}" >/dev/null
+echo "downloaded $MODEL_ID@${MODEL_REVISION:0:8} and $ENGRAM_ID@${ENGRAM_REVISION:0:8} shards: $ENGRAM_SHARDS"' '''
+start = """docker rm -f dsv41-1017-nfs >/dev/null 2>&1 || true
+docker run -d --name dsv41-1017-nfs --restart unless-stopped --privileged --network host \
+  -e NFS_CLIENTS=192.168.100.11,192.168.100.0/24 -v "$HOME/.cache/huggingface:/export" dspark-nfs:local >/dev/null
+./start.sh"""
+# `down` removes this NFS container too (see engines.py).
+nfs_container = "dsv41-1017-nfs"
+stop = "./stop.sh"
+logs = "docker logs --tail 200 -f dsv41-1017-exl3-tf"
+
+[launcher.env]
+WORKER = "{user}@{worker.cx7_ip}"
+FABRIC_PEER = "{worker.cx7_ip}"
+# Every model serves on 8000, so inference.json.lab (json-lab) has one backend.
+PORT = "8000"
+# The worker mounts the NFSv4 root of the head's export (dsv41-1017-nfs above).
+NFS_SERVER = "{head.cx7_ip}"
+NFS_PATH = "/"
+# The recipe's practical limit with ~6 GiB of other software on the head (README).
+CONTEXT = "524288"
+
+[bench]
+prefill_tokens = [2048, 8192, 32768]
