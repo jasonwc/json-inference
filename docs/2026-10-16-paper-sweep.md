@@ -1,5 +1,7 @@
 # Paper sweep 2026-10-16: every json-inference model through Byrdpip → paperd → Paper (staging, gateway `bots`, backend `json-sparks`)
 
+As of 2026-10-16: later definitions (e.g. `deepseek-v4.1-flash-1017-exl3`) aren't covered, and Paper routing now goes through the production org (json-lab CLAUDE.md), not staging.
+
 Per model: `inference up`, served name checked on /v1/models, then 3 Hermes turns (`-m <served name>`):
 (1) "which model are you, and 17×23?" (expect 391), (2) Home Assistant weather (tool use),
 (3) train arrival 9:40 + 2h35 + 15 min delay (expect 12:30). "Captured" = turn's model calls reached

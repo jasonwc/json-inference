@@ -25,7 +25,7 @@ inference serve-ui [--dry-run]      # the model-swap web page (see below)
 inference sweep [model...]          # up + bench each in turn (default all), skipping failures
 ```
 
-The CLI runs on a LAN machine and drives the Sparks over SSH; long steps run
+The CLI runs on a LAN machine (the devshell is x86_64-linux) and drives the Sparks over SSH; long steps run
 detached on the Sparks with their logs in `~/json-inference/logs/`.
 
 Every model serves on `http://json-spark-1.json.lab:8000/v1`, which json-lab
@@ -40,10 +40,10 @@ models take nearly all of both nodes' unified memory.
 ```
 cluster.toml       # how to reach the Sparks: SSH names, QSFP IPs, NCCL netdev/RoCE device
 models/<name>.toml # one serving setup per file
-json_inference/    # the CLI (stdlib-only Python 3.11+): config, engines, bench
+json_inference/    # the CLI (stdlib-only Python 3.11+): cli, config, engines, remote (SSH), bench, quality, web
 bin/inference      # runs the CLI from the checkout
-results/<model>/   # committed benchmark runs
-json-mini/         # older Ollama setup for json-mini
+results/<model>/   # committed runs: <timestamp>.json (bench), up-*.json (switch time), quality-*.json, tool-eval/<date>/
+docs/              # write-ups of benchmark sweeps and findings
 ```
 
 ## Model definitions
@@ -100,7 +100,8 @@ committed together.
 ## Swapping from a browser
 
 `inference serve-ui` serves a small page (json_inference/web.py) at
-`http://models.json.lab` (json-lab ingress, LAN + WireGuard only) from json-mini,
+`https://models.lab.json-lab.online` (json-lab ingress with Authelia SSO, LAN +
+WireGuard only; `models.json.lab` redirects there) from json-mini,
 where it runs as the `inference-ui` systemd user service (json-workstation
 `hosts/json-mini/inference-ui.nix`). It shows what's serving and vLLM's live
 running/waiting requests, every definition with its latest benchmark, and
@@ -114,19 +115,17 @@ latest `--quality` score. One operation at a time; its log and
 result live in `~/.local/state/json-inference/ui/`. Pull, bench and sweep stay
 on the CLI.
 
-Login: HTTP basic auth from `INFERENCE_UI_USER`/`INFERENCE_UI_PASSWORD` (the
-service reads `~/.config/json-inference/ui-auth`; the password is also in
-json-lab `.envrc` as `INFERENCE_UI_PASSWORD`). Try the page without touching the
+Login: Authelia through the ingress (the page trusts `Remote-User` only from the
+k3s nodes, `INFERENCE_UI_TRUSTED_PROXIES`). Direct access to json-mini:8091 uses
+HTTP basic auth from `INFERENCE_UI_USER`/`INFERENCE_UI_PASSWORD` (12+ characters),
+which the service renders from 1Password (vault json-lab, item "env: json-lab
+.envrc") into `$XDG_RUNTIME_DIR/inference-ui/ui-auth` at start. Try the page without touching the
 Sparks: `INFERENCE_UI_USER=me INFERENCE_UI_PASSWORD=... inference serve-ui --dry-run`.
 
 ## Clients
 
 Anything OpenAI-compatible can use the endpoint. json-lab runs Open WebUI at
-`chat.json.lab` against it, and json-workstation configures opencode, pi and
+`chat.lab.json-lab.online` against it, and json-workstation configures opencode, pi and
 DeepSeek's `dsh` with the Sparks as an extra provider alongside their hosted
 ones.
 
-## json-mini
-
-`json-mini/` holds the older Ollama + Open WebUI setup for json-mini's iGPU
-(`json-mini/setup.sh`, then `ollama-services start|stop|status`).

@@ -7,21 +7,22 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 json-inference: run, benchmark and compare models on the two-node DGX Spark
 cluster (json-spark-1 = head / API, json-spark-2 = worker, 200G QSFP link
 between them). The Sparks' OS, network and monitoring belong to json-lab
-(`sparks/`), not here. json-mini's small-model Ollama setup lives in
-`json-mini/`.
+(`sparks/`), not here.
 
 ## Layout
 
 - `cluster.toml`: how to reach the Sparks (SSH names, QSFP IPs, NCCL netdev/RoCE device/GID)
 - `models/<name>.toml`: one serving setup per file; the file name is the model's API id
 - `json_inference/`: the CLI, stdlib-only Python 3.11+
+  - `cli.py`: argument parsing and subcommands
   - `config.py`: loading definitions
   - `engines.py`: `vllm` and `launcher` engines, detached remote jobs
+  - `remote.py`: SSH runner for the Sparks
   - `bench.py`: benchmark and results table
   - `quality.py` + `quality_items.json`: `bench --quality`, a small deterministic quality suite (original items; results/<model>/quality-*.json)
-  - `web.py`: `inference serve-ui`, the model-swap page at models.json.lab (runs on json-mini)
+  - `web.py`: `inference serve-ui`, the model-swap page at models.lab.json-lab.online (Authelia; models.json.lab redirects; runs on json-mini)
 - `bin/inference`: runs the CLI from the checkout (the devshell puts `bin/` on PATH)
-- `results/<model>/<timestamp>.json`: committed benchmark runs
+- `results/<model>/`: committed runs: `<timestamp>.json` (bench), `up-*.json` (switch time), `quality-*.json`, `tool-eval/<date>/`
 - `docs/`: write-ups of benchmark sweeps and findings
 
 ## Key Commands
@@ -34,7 +35,7 @@ between them). The Sparks' OS, network and monitoring belong to json-lab
 
 - One model at a time: `up` always runs `down` first (big models use nearly all
   of both nodes' 128 GB unified memory).
-- The CLI runs on a LAN machine and drives the Sparks over SSH (`bash -lc`, so
+- The CLI runs on a LAN machine (devshell: x86_64-linux) and drives the Sparks over SSH (`bash -lc`, so
   system-manager's PATH is present). Long steps run under nohup on the Spark
   and are followed via their log in `~/json-inference/logs/`.
 - vLLM containers follow NVIDIA's dgx-spark-playbooks (NGC image, Ray for

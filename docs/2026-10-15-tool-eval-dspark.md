@@ -47,4 +47,5 @@ scenario of every trial; the two trial reports kept are the ones where TC-60 fai
   Inbox/ (anything else needs Jason's approval in Obsidian), and no email tool. Keep those
   in place for any model; a model swap shouldn't relax them.
 - Use this as the baseline for the TensorFold Qwen3.8-Flash-Next comparison (same
-  command, same settings).
+  command, same settings); that comparison is in
+  [2026-10-16-overnight-qwen.md](2026-10-16-overnight-qwen.md).

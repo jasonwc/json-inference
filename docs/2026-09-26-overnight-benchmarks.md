@@ -46,7 +46,8 @@ How to read it:
 - **Long unattended jobs where correctness matters more than speed:**
   `glm-5.3-flash-exl3`. It's the highest-ranked of the set on quality.
   Tool calling on GLM-5.x in vLLM has known bugs, so check it with your
-  harness.
+  harness. (Its definition has since been removed for those tool-calling
+  bugs; only its results remain.)
 - **One Spark, leaving the other free:** `qwen3.8-27b-nvfp4`. It's slow for
   a single user (~20–24 tok/s) but scales well (76–83 tok/s across 4
   requests).
